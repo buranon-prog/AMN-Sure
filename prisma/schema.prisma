@@ -34,6 +34,7 @@ model User {
   createdOperationCosts OperationCost[]
   createdKpiRecords     KpiRecord[]
   createdInteractions   CustomerInteraction[]
+  createdPlans          EmployeePlan[]
 }
 
 // One row per (user, module). Managers bypass this check entirely in code;
@@ -182,6 +183,7 @@ model Employee {
   user        User?         @relation(fields: [userId], references: [id])
   attendances Attendance[]
   kpiRecords  KpiRecord[]
+  plans       EmployeePlan[]
 }
 
 model Attendance {
@@ -240,6 +242,27 @@ model KpiRecord {
   recordedBy    User          @relation(fields: [recordedById], references: [id])
 
   @@unique([kpiDefinitionId, employeeId, period])
+}
+
+// Work plan / goals set for an employee for a given period — distinct from
+// KpiRecord (which tracks actual results against a KPI target): a plan is
+// the set of things an employee is supposed to be doing this period.
+model EmployeePlan {
+  id          String    @id @default(cuid())
+  employeeId  String
+  title       String
+  description String?
+  period      String // e.g. "2026-09"
+  dueDate     DateTime?
+  priority    String    @default("MEDIUM") // LOW | MEDIUM | HIGH
+  status      String    @default("PLANNED") // PLANNED | IN_PROGRESS | COMPLETED | DELAYED | CANCELLED
+  notes       String?
+  createdById String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  employee  Employee @relation(fields: [employeeId], references: [id])
+  createdBy User     @relation(fields: [createdById], references: [id])
 }
 
 // ---------- Supply Chain ----------

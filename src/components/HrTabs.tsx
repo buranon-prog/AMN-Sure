@@ -4,12 +4,14 @@ const TABS = [
   { href: "/hr", label: "พนักงาน" },
   { href: "/hr/attendance", label: "การลงเวลาทำงาน" },
   { href: "/hr/kpi", label: "KPI" },
+  { href: "/hr/planning", label: "แผนงานพนักงาน" },
+  { href: "/hr/reports", label: "รายงาน" },
   { href: "/hr/costs", label: "ค่าใช้จ่ายดำเนินงาน" },
 ];
 
 export default function HrTabs({ active }: { active: string }) {
   return (
-    <div className="flex gap-1 border-b border-gray-200 mt-4 mb-6">
+    <div className="flex flex-wrap gap-1 border-b border-gray-200 mt-4 mb-6">
       {TABS.map((t) => (
         <Link
           key={t.href}

@@ -44,6 +44,7 @@ export const FINANCE_CATEGORY = [
 export const EMPLOYEE_STATUS = ["ACTIVE", "INACTIVE"] as const;
 export const ATTENDANCE_STATUS = ["PRESENT", "LATE", "ABSENT", "LEAVE"] as const;
 export const KPI_PERIOD = ["MONTHLY", "QUARTERLY", "YEARLY"] as const;
+export const PLAN_STATUS = ["PLANNED", "IN_PROGRESS", "COMPLETED", "DELAYED", "CANCELLED"] as const;
 
 export const SHIPMENT_STATUS = [
   "ORDERED",

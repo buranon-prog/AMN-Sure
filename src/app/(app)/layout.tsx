@@ -61,6 +61,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </Link>
           ))}
 
+          <div className="mt-3 px-5 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+            ข้อมูล
+          </div>
+          <Link
+            href="/data-warehouse"
+            className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-brand-50 hover:text-brand-700"
+          >
+            <span>🗄️</span> คลังข้อมูล (Export)
+          </Link>
+
           {role === "MANAGER" && (
             <>
               <div className="mt-3 px-5 text-xs font-semibold text-gray-400 uppercase tracking-wide">

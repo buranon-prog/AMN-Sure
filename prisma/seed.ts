@@ -50,7 +50,7 @@ async function main() {
     });
   }
 
-  await prisma.employee.upsert({
+  const employeeRecord = await prisma.employee.upsert({
     where: { employeeCode: "EMP-001" },
     update: {},
     create: {
@@ -112,6 +112,20 @@ async function main() {
       unit: "บาท",
       targetValue: 500000,
       period: "MONTHLY",
+    },
+  });
+
+  await prisma.employeePlan.upsert({
+    where: { id: "seed-plan-1" },
+    update: {},
+    create: {
+      id: "seed-plan-1",
+      employeeId: employeeRecord.id,
+      title: "ตรวจนับสต็อกสินค้าประจำเดือน",
+      period: new Date().toISOString().slice(0, 7),
+      priority: "MEDIUM",
+      status: "IN_PROGRESS",
+      createdById: manager.id,
     },
   });
 

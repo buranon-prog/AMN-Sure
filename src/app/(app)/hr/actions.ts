@@ -140,3 +140,41 @@ export async function createOperationCostAction(formData: FormData) {
   revalidatePath("/hr/costs");
   revalidatePath("/finance");
 }
+
+export async function createPlanAction(formData: FormData) {
+  const session = await assertCan("HR", "edit");
+
+  const employeeId = String(formData.get("employeeId") || "");
+  const title = String(formData.get("title") || "").trim();
+  const description = String(formData.get("description") || "") || null;
+  const period = String(formData.get("period") || "").trim();
+  const dueDateRaw = String(formData.get("dueDate") || "");
+  const priority = String(formData.get("priority") || "MEDIUM");
+
+  if (!employeeId || !title || !period) {
+    throw new Error("กรุณาเลือกพนักงาน กรอกชื่อแผนงาน และรอบเวลาให้ครบ");
+  }
+
+  await prisma.employeePlan.create({
+    data: {
+      employeeId,
+      title,
+      description: description ?? undefined,
+      period,
+      dueDate: dueDateRaw ? new Date(dueDateRaw) : undefined,
+      priority,
+      createdById: session.user.id,
+    },
+  });
+
+  revalidatePath("/hr/planning");
+}
+
+export async function updatePlanStatusAction(planId: string, formData: FormData) {
+  await assertCan("HR", "edit");
+  const status = String(formData.get("status") || "");
+  if (!status) throw new Error("กรุณาเลือกสถานะ");
+  await prisma.employeePlan.update({ where: { id: planId }, data: { status } });
+  revalidatePath("/hr/planning");
+  revalidatePath("/hr/reports");
+}
