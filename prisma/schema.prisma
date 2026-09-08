@@ -1,0 +1,327 @@
+// AMN-Sure internal ERP data model
+// Note: categorical fields (status/type/category enums) are plain Strings
+// constrained at the application layer (see src/lib/constants.ts) instead of
+// Prisma enums, so this schema stays portable between SQLite (dev) and
+// Postgres (production) without a migration.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Auth / Access control ----------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("EMPLOYEE") // MANAGER | EMPLOYEE
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  permissions  UserPermission[]
+  employee     Employee?
+
+  createdStockMovements StockMovement[]
+  createdSales          Sale[]
+  createdFinanceTx      FinanceTransaction[]
+  createdOperationCosts OperationCost[]
+  createdKpiRecords     KpiRecord[]
+  createdInteractions   CustomerInteraction[]
+}
+
+// One row per (user, module). Managers bypass this check entirely in code;
+// this table only governs EMPLOYEE accounts.
+model UserPermission {
+  id       String  @id @default(cuid())
+  userId   String
+  module   String // INVENTORY | CONSIGNMENT | FINANCE | HR | SUPPLY_CHAIN | CRM | STRATEGY
+  canView  Boolean @default(false)
+  canEdit  Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, module])
+}
+
+// ---------- Inventory & Consignment ----------
+
+model Product {
+  id          String   @id @default(cuid())
+  sku         String   @unique
+  name        String
+  category    String
+  brand       String?
+  description String?
+  condition   String   @default("USED") // NEW | USED | REFURBISHED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  stockItems StockItem[]
+}
+
+model Consignor {
+  id             String   @id @default(cuid())
+  name           String
+  contactPerson  String?
+  phone          String?
+  email          String?
+  commissionRate Float? // % of sale price kept by us, remainder paid out
+  notes          String?
+  createdAt      DateTime @default(now())
+
+  stockItems StockItem[]
+}
+
+// A physical received batch/unit of a product, whether purchased outright
+// or brought in on consignment.
+model StockItem {
+  id             String   @id @default(cuid())
+  productId      String
+  source         String   @default("PURCHASE") // PURCHASE | CONSIGNMENT
+  consignorId    String?
+  serialNumber   String?
+  condition      String   @default("USED")
+  quantity       Int      @default(1)
+  costPrice      Float // our cost (0/low for consignment until sold)
+  agreedPayout   Float? // for consignment: amount owed to consignor per unit sold
+  listPrice      Float // asking sale price
+  status         String   @default("IN_STOCK") // IN_STOCK | SOLD | RETURNED
+  receivedDate   DateTime @default(now())
+  supplierName   String?
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  product   Product    @relation(fields: [productId], references: [id])
+  consignor Consignor? @relation(fields: [consignorId], references: [id])
+
+  movements StockMovement[]
+  sales     Sale[]
+  shipments Shipment[]
+}
+
+// Receiving / dispatch log ("รับของเข้าออก")
+model StockMovement {
+  id           String   @id @default(cuid())
+  stockItemId  String
+  type         String // IN | OUT
+  quantity     Int
+  unitPrice    Float?
+  counterparty String? // supplier or customer name
+  referenceNo  String?
+  movementDate DateTime @default(now())
+  notes        String?
+  createdById  String
+  createdAt    DateTime @default(now())
+
+  stockItem StockItem @relation(fields: [stockItemId], references: [id])
+  createdBy User      @relation(fields: [createdById], references: [id])
+}
+
+// A sale transaction — triggers the consignment payout/financial flow.
+model Sale {
+  id               String   @id @default(cuid())
+  stockItemId      String
+  customerId       String?
+  quantity         Int      @default(1)
+  salePrice        Float
+  consignorPayout  Float? // amount owed to consignor, if applicable
+  paymentStatus    String   @default("PAID") // PAID | PENDING | PARTIAL
+  saleDate         DateTime @default(now())
+  notes            String?
+  soldById         String
+  createdAt        DateTime @default(now())
+
+  stockItem StockItem @relation(fields: [stockItemId], references: [id])
+  customer  Customer? @relation(fields: [customerId], references: [id])
+  soldBy    User      @relation(fields: [soldById], references: [id])
+
+  financeTransactions FinanceTransaction[]
+}
+
+// ---------- Finance ----------
+
+model FinanceTransaction {
+  id          String   @id @default(cuid())
+  type        String // INCOME | EXPENSE
+  category    String // SALES | CONSIGNMENT_PAYOUT | PURCHASE | OPERATION_COST | SALARY | OTHER
+  amount      Float
+  description String?
+  saleId      String?
+  transactionDate DateTime @default(now())
+  createdById String
+  createdAt   DateTime @default(now())
+
+  sale      Sale? @relation(fields: [saleId], references: [id])
+  createdBy User  @relation(fields: [createdById], references: [id])
+}
+
+// ---------- HR ----------
+
+model Employee {
+  id           String    @id @default(cuid())
+  userId       String?   @unique
+  employeeCode String    @unique
+  fullName     String
+  position     String
+  department   String
+  phone        String?
+  email        String?
+  hireDate     DateTime  @default(now())
+  salary       Float?
+  status       String    @default("ACTIVE") // ACTIVE | INACTIVE
+  createdAt    DateTime  @default(now())
+
+  user        User?         @relation(fields: [userId], references: [id])
+  attendances Attendance[]
+  kpiRecords  KpiRecord[]
+}
+
+model Attendance {
+  id         String   @id @default(cuid())
+  employeeId String
+  date       DateTime @default(now())
+  checkIn    DateTime?
+  checkOut   DateTime?
+  status     String   @default("PRESENT") // PRESENT | LATE | ABSENT | LEAVE
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, date])
+}
+
+model OperationCost {
+  id          String   @id @default(cuid())
+  category    String
+  description String?
+  amount      Float
+  costDate    DateTime @default(now())
+  createdById String
+  createdAt   DateTime @default(now())
+
+  createdBy User @relation(fields: [createdById], references: [id])
+}
+
+// KPI definitions can be created/edited anytime by managers ("ตั้งข้อมูลได้เรื่อยๆ")
+model KpiDefinition {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  unit        String? // e.g. "บาท", "ครั้ง", "%"
+  targetValue Float?
+  period      String   @default("MONTHLY") // MONTHLY | QUARTERLY | YEARLY
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  records KpiRecord[]
+}
+
+model KpiRecord {
+  id              String   @id @default(cuid())
+  kpiDefinitionId String
+  employeeId      String
+  period          String // e.g. "2026-09"
+  actualValue     Float
+  note            String?
+  recordedById    String
+  createdAt       DateTime @default(now())
+
+  kpiDefinition KpiDefinition @relation(fields: [kpiDefinitionId], references: [id])
+  employee      Employee      @relation(fields: [employeeId], references: [id])
+  recordedBy    User          @relation(fields: [recordedById], references: [id])
+
+  @@unique([kpiDefinitionId, employeeId, period])
+}
+
+// ---------- Supply Chain ----------
+
+model Shipment {
+  id             String    @id @default(cuid())
+  referenceNo    String    @unique
+  stockItemId    String?
+  supplierName   String?
+  origin         String?
+  destination    String?
+  carrier        String?
+  trackingNumber String?
+  status         String    @default("ORDERED") // ORDERED | IN_TRANSIT | CUSTOMS | DELIVERED | DELAYED | CANCELLED
+  expectedDate   DateTime?
+  actualDate     DateTime?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  stockItem StockItem? @relation(fields: [stockItemId], references: [id])
+}
+
+// ---------- CRM ----------
+
+model Customer {
+  id           String   @id @default(cuid())
+  name         String
+  type         String   @default("CLINIC") // INDIVIDUAL | CLINIC | HOSPITAL | DEALER
+  phone        String?
+  email        String?
+  address      String?
+  industry     String?
+  loyaltyTier  String   @default("BRONZE") // BRONZE | SILVER | GOLD | PLATINUM
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sales        Sale[]
+  interactions CustomerInteraction[]
+}
+
+model CustomerInteraction {
+  id               String    @id @default(cuid())
+  customerId       String
+  type             String    @default("INTEREST") // CALL | MEETING | INTEREST | COMPLAINT | PURCHASE_FOLLOWUP
+  interestProduct  String?
+  probability      Int? // 0-100 likelihood of closing
+  notes            String?
+  followUpDate     DateTime?
+  createdById      String
+  createdAt        DateTime  @default(now())
+
+  customer  Customer @relation(fields: [customerId], references: [id])
+  createdBy User     @relation(fields: [createdById], references: [id])
+}
+
+// ---------- Strategy ----------
+
+// เครื่องมือแพทย์ที่ต้องการหา และควรซื้อที่ไหน
+model SourcingTarget {
+  id             String   @id @default(cuid())
+  equipmentName  String
+  description    String?
+  targetSource   String? // where we think we should buy it from
+  estimatedCost  Float?
+  priority       String   @default("MEDIUM") // LOW | MEDIUM | HIGH
+  status         String   @default("SEEKING") // SEEKING | NEGOTIATING | ACQUIRED | DROPPED
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// ควรขายที่ไหน (market/segment targeting)
+model MarketTarget {
+  id              String   @id @default(cuid())
+  segmentName     String // e.g. region, hospital network, dealer channel
+  description     String?
+  potentialValue  Float?
+  priority        String   @default("MEDIUM") // LOW | MEDIUM | HIGH
+  status          String   @default("PLANNED") // PLANNED | IN_PROGRESS | ACTIVE | DROPPED
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
