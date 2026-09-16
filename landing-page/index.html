@@ -95,19 +95,12 @@
 
   /* ---- logo ---- */
   .logo{display:flex;align-items:center;gap:14px;}
-  .logo svg{width:52px;height:auto;}
-  .logo-text{
-    font-size:22px;
-    font-weight:700;
-    letter-spacing:.18em;
-    color:var(--green-dark);
+  .logo img{height:44px;width:auto;}
+  .logo.light{
+    background:var(--white);
+    padding:10px 18px;
+    border-radius:14px;
   }
-  .logo-text span{
-    color:var(--green);
-    font-weight:500;
-  }
-  .logo.light .logo-text{color:var(--white);}
-  .logo.light .logo-text span{color:var(--green-soft);}
 
   /* ---- header ---- */
   header{
@@ -184,23 +177,6 @@
     margin-bottom:38px;
   }
   .hero-actions{display:flex;gap:18px;flex-wrap:wrap;}
-  .hero-stats{
-    display:flex;
-    gap:56px;
-    margin-top:72px;
-    flex-wrap:wrap;
-  }
-  .hero-stats div b{
-    display:block;
-    font-size:30px;
-    color:var(--green-dark);
-    font-weight:700;
-  }
-  .hero-stats div span{
-    font-size:13px;
-    color:var(--text-light);
-    letter-spacing:.04em;
-  }
 
   /* ---- section generic ---- */
   section{padding:100px 0;}
@@ -221,7 +197,7 @@
     padding:56px 40px;
     position:relative;
   }
-  .about-visual svg{width:100%;max-width:280px;margin:0 auto;opacity:.9;}
+  .about-visual img{width:100%;max-width:280px;margin:0 auto;}
   .about-points{display:grid;gap:22px;margin-top:30px;}
   .about-points li{
     display:flex;
@@ -265,8 +241,7 @@
     margin-bottom:22px;
   }
   .service-icon svg{width:26px;height:26px;stroke:var(--green-dark);}
-  .service-card h3{font-size:18px;margin-bottom:10px;}
-  .service-card p{font-size:14px;}
+  .service-card h3{font-size:18px;margin-bottom:0;}
 
   /* ---- why us / stats band ---- */
   .band{
@@ -368,7 +343,6 @@
     .burger{display:flex;}
     .service-grid{grid-template-columns:1fr;}
     .hero{padding:70px 0 90px;}
-    .hero-stats{gap:34px;}
     .cta-box{padding:50px 26px;}
   }
 </style>
@@ -378,23 +352,7 @@
 <header>
   <div class="nav-wrap">
     <a href="#top" class="logo">
-      <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="loopA" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#EAF4EE"/>
-            <stop offset="45%" stop-color="#8FBFA1"/>
-            <stop offset="100%" stop-color="#2E5C46"/>
-          </linearGradient>
-          <linearGradient id="loopB" x1="100%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#F5FAF7"/>
-            <stop offset="50%" stop-color="#A9CFB7"/>
-            <stop offset="100%" stop-color="#3F7A5C"/>
-          </linearGradient>
-        </defs>
-        <path d="M50 20 C20 20 20 80 50 80 C80 80 80 20 50 20 Z" fill="none" stroke="url(#loopA)" stroke-width="11"/>
-        <path d="M150 20 C120 20 120 80 150 80 C180 80 180 20 150 20 Z" fill="none" stroke="url(#loopB)" stroke-width="11"/>
-      </svg>
-      <span class="logo-text">AMN<span>&nbsp;SURE</span></span>
+      <img src="assets/logo.png" alt="AMN SURE">
     </a>
 
     <input type="checkbox" id="nav-toggle">
@@ -412,22 +370,13 @@
 </header>
 
 <section class="hero" id="top">
-  <svg class="hero-bg-icon" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-    <path d="M50 20 C20 20 20 80 50 80 C80 80 80 20 50 20 Z" fill="none" stroke="#3F7A5C" stroke-width="6"/>
-    <path d="M150 20 C120 20 120 80 150 80 C180 80 180 20 150 20 Z" fill="none" stroke="#173B2E" stroke-width="6"/>
-  </svg>
+  <img class="hero-bg-icon" src="assets/logo.png" alt="">
   <div class="container hero-inner">
     <span class="eyebrow">Medical Equipment Specialist</span>
     <h1>เครื่องมือแพทย์คุณภาพ<br>ที่คุณ<em>วางใจได้</em></h1>
-    <p class="lead">AMN Sure คือผู้เชี่ยวชาญด้านการซื้อ-ขายและรับฝากขายเครื่องมือแพทย์มือสอง ผ่านการตรวจสอบมาตรฐานอย่างเข้มงวด เพื่อส่งมอบความมั่นใจให้กับสถานพยาบาลทุกขนาด</p>
+    <p class="lead">AMN SURE คือผู้เชี่ยวชาญด้านการประเมิน ซื้อ-ขายและรับฝากขายเครื่องมือแพทย์มือสอง ผ่านการตรวจสอบมาตรฐานอย่างเข้มงวด เพื่อส่งมอบความมั่นใจให้กับสถานพยาบาลทุกขนาด</p>
     <div class="hero-actions">
       <a href="#contact" class="btn btn-primary">ติดต่อสอบถาม</a>
-      <a href="#services" class="btn btn-outline">ดูบริการของเรา</a>
-    </div>
-    <div class="hero-stats">
-      <div><b>10+</b><span>ปีประสบการณ์</span></div>
-      <div><b>1,500+</b><span>เครื่องมือแพทย์ที่ผ่านมือเรา</span></div>
-      <div><b>300+</b><span>สถานพยาบาลที่ไว้วางใจ</span></div>
     </div>
   </div>
 </section>
@@ -435,17 +384,7 @@
 <section id="about">
   <div class="container about-grid">
     <div class="about-visual">
-      <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="aboutA" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#EAF4EE"/>
-            <stop offset="50%" stop-color="#8FBFA1"/>
-            <stop offset="100%" stop-color="#2E5C46"/>
-          </linearGradient>
-        </defs>
-        <path d="M50 20 C20 20 20 80 50 80 C80 80 80 20 50 20 Z" fill="none" stroke="url(#aboutA)" stroke-width="10"/>
-        <path d="M150 20 C120 20 120 80 150 80 C180 80 180 20 150 20 Z" fill="none" stroke="url(#aboutA)" stroke-width="10"/>
-      </svg>
+      <img src="assets/logo.png" alt="AMN SURE">
     </div>
     <div>
       <span class="eyebrow">About AMN Sure</span>
@@ -465,7 +404,6 @@
     <div class="section-head center">
       <span class="eyebrow" style="margin:0 auto;justify-content:center;">Our Services</span>
       <h2>บริการของเรา</h2>
-      <p>ครอบคลุมทุกความต้องการด้านเครื่องมือแพทย์ ตั้งแต่การจัดหาไปจนถึงบริการหลังการขาย</p>
     </div>
     <div class="service-grid">
       <div class="service-card">
@@ -473,28 +411,24 @@
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
         </div>
         <h3>ซื้อ-ขายเครื่องมือแพทย์</h3>
-        <p>รับซื้อและจำหน่ายเครื่องมือแพทย์มือสองคุณภาพสูง ผ่านการตรวจสอบอย่างละเอียดในทุกขั้นตอน</p>
       </div>
       <div class="service-card">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4 8l8-5 8 5M6 21h12"/></svg>
         </div>
         <h3>รับฝากขาย (Consignment)</h3>
-        <p>บริการฝากขายเครื่องมือแพทย์ พร้อมระบบจัดการที่โปร่งใสและตรวจสอบสถานะได้ตลอดเวลา</p>
       </div>
       <div class="service-card">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/></svg>
         </div>
         <h3>ตรวจสอบและรับรองคุณภาพ</h3>
-        <p>ทุกชิ้นผ่านการตรวจเช็คสภาพและมาตรฐานความปลอดภัยอย่างเข้มงวดก่อนส่งมอบถึงมือคุณ</p>
       </div>
       <div class="service-card">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.6c0 5.4-8.8 10-8.8 10s-8.8-4.6-8.8-10a4.9 4.9 0 018.8-3 4.9 4.9 0 018.8 3z"/></svg>
         </div>
         <h3>บริการหลังการขาย</h3>
-        <p>ให้คำปรึกษาและดูแลหลังการขายอย่างต่อเนื่อง เพื่อความมั่นใจสูงสุดในทุกการใช้งาน</p>
       </div>
     </div>
   </div>
@@ -504,12 +438,12 @@
   <div class="container">
     <div class="section-head center">
       <span class="eyebrow" style="margin:0 auto;justify-content:center;">Why Choose Us</span>
-      <h2>ทำไมต้อง AMN Sure</h2>
+      <h2>ทำไมต้อง SURE</h2>
     </div>
     <div class="why-grid">
       <div class="why-item">
         <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 1-4.5 4.4L17.5 20 12 17l-5.5 3 1-6.6L3 9l6-1 3-6z"/></svg></div>
-        <h3>มาตรฐานสูง</h3>
+        <h3>มาตรฐาน</h3>
         <p>ตรวจสอบคุณภาพทุกชิ้นตามมาตรฐานสากล</p>
       </div>
       <div class="why-item">
@@ -550,11 +484,7 @@
     <div class="footer-grid">
       <div>
         <a href="#top" class="logo light">
-          <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-            <path d="M50 20 C20 20 20 80 50 80 C80 80 80 20 50 20 Z" fill="none" stroke="#BFDCCA" stroke-width="11"/>
-            <path d="M150 20 C120 20 120 80 150 80 C180 80 180 20 150 20 Z" fill="none" stroke="#BFDCCA" stroke-width="11"/>
-          </svg>
-          <span class="logo-text">AMN<span>&nbsp;SURE</span></span>
+          <img src="assets/logo.png" alt="AMN SURE">
         </a>
         <p>ผู้เชี่ยวชาญด้านการซื้อ-ขายและรับฝากขายเครื่องมือแพทย์มือสองคุณภาพ เพื่อสถานพยาบาลที่ไว้วางใจได้</p>
       </div>
