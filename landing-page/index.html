@@ -97,12 +97,7 @@
   /* ---- logo ---- */
   .logo{display:flex;align-items:center;gap:14px;min-height:96px;}
   .logo img{height:96px;width:auto;}
-  .logo.light{
-    background:linear-gradient(160deg,#ffffff,var(--green-mist));
-    padding:12px 20px;
-    border-radius:16px;
-    box-shadow:0 16px 32px -16px rgba(0,0,0,.4);
-  }
+  .logo.light img{filter:brightness(0) invert(1) drop-shadow(0 2px 6px rgba(0,0,0,.25));}
   .logo-fallback{display:none;align-items:center;gap:12px;}
   .ring-mark{display:flex;}
   .ring-loop{
@@ -461,13 +456,27 @@
     100%{box-shadow:0 0 0 0 rgba(63,122,92,0);}
   }
 
+  /* ---- premium grain texture ---- */
+  .grain{position:relative;}
+  .grain::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity:.05;
+    mix-blend-mode:overlay;
+    pointer-events:none;
+  }
+
   /* ---- 3d logo showcase ---- */
   .showcase{
     position:relative;
     background:radial-gradient(circle at 50% 40%,#173B2E 0%,#0d251d 55%,#071310 100%);
-    padding:130px 0 150px;
+    padding:150px 0 170px;
+    margin:-56px 0;
     overflow:hidden;
     text-align:center;
+    clip-path:polygon(0 56px,100% 0,100% calc(100% - 56px),0 100%);
   }
   .showcase-glow{
     position:absolute;
@@ -506,14 +515,17 @@
   }
   .showcase-3d-inner{
     width:100%;height:100%;
-    display:flex;align-items:center;justify-content:center;
+    position:relative;
     transform-style:preserve-3d;
     animation:spin3d 11s linear infinite;
   }
   .showcase-3d-inner img{
+    position:absolute;
+    inset:0;
+    margin:auto;
     max-width:100%;
     max-height:100%;
-    filter:drop-shadow(0 30px 36px rgba(0,0,0,.55));
+    width:auto;height:auto;
   }
   @keyframes spin3d{
     from{transform:rotateY(0deg);}
@@ -593,7 +605,7 @@
   </div>
 </section>
 
-<section class="showcase">
+<section class="showcase grain">
   <div class="showcase-glow"></div>
   <span class="showcase-particle" style="width:10px;height:10px;top:22%;left:18%;animation-delay:.2s;"></span>
   <span class="showcase-particle" style="width:6px;height:6px;top:30%;left:78%;animation-delay:1.4s;"></span>
@@ -602,7 +614,7 @@
   <div class="container">
     <span class="eyebrow showcase-eyebrow">Trusted Identity</span>
     <div class="showcase-3d">
-      <div class="showcase-3d-inner">
+      <div class="showcase-3d-inner" id="logo3d">
         <img src="logo.png" alt="AMN SURE" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
         <span class="logo-fallback lg" style="display:none;">
           <span class="ring-mark"><span class="ring-loop"></span><span class="ring-loop"></span></span>
@@ -671,7 +683,7 @@
   </div>
 </section>
 
-<section class="band" id="why">
+<section class="band grain" id="why">
   <div class="container">
     <div class="section-head center reveal">
       <span class="eyebrow" style="margin:0 auto;justify-content:center;">Why Choose Us</span>
@@ -720,13 +732,13 @@
   </div>
 </section>
 
-<footer>
+<footer class="grain">
   <div class="container">
     <div class="footer-grid">
       <div>
         <a href="#top" class="logo light">
           <img src="logo.png" alt="AMN SURE" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-          <span class="logo-fallback on-light">
+          <span class="logo-fallback">
             <span class="ring-mark"><span class="ring-loop"></span><span class="ring-loop"></span></span>
             <span class="word">AMN<span>&nbsp;SURE</span></span>
           </span>
@@ -783,6 +795,31 @@
 </div>
 
 <script>
+  (function () {
+    var wrap = document.getElementById('logo3d');
+    var base = wrap && wrap.querySelector('img');
+    if (!base) return;
+    function buildLayers() {
+      if (wrap.dataset.layered) return;
+      wrap.dataset.layered = '1';
+      var depth = 26, count = 22;
+      for (var i = 0; i < count; i++) {
+        var z = -depth / 2 + (depth / (count - 1)) * i;
+        var node = (i === count - 1) ? base : base.cloneNode(true);
+        node.removeAttribute('onerror');
+        node.style.transform = 'translateZ(' + z.toFixed(2) + 'px)';
+        node.style.filter = 'brightness(' + (0.32 + 0.68 * (i / (count - 1))) + ')';
+        if (node !== base) wrap.appendChild(node);
+      }
+      base.style.filter += ' drop-shadow(0 30px 36px rgba(0,0,0,.55))';
+    }
+    if (base.complete && base.naturalWidth) {
+      buildLayers();
+    } else {
+      base.addEventListener('load', buildLayers);
+    }
+  })();
+
   var revealItems = document.querySelectorAll('.reveal');
   if ('IntersectionObserver' in window) {
     var revealObserver = new IntersectionObserver(function (entries) {
