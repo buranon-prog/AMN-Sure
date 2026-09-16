@@ -95,9 +95,17 @@
   .btn-outline:hover{background:var(--green-mist);}
 
   /* ---- logo ---- */
-  .logo{display:flex;align-items:center;gap:14px;min-height:104px;}
-  .logo img{height:104px;width:auto;}
-  .logo.light img{filter:brightness(0) invert(1) drop-shadow(0 2px 6px rgba(0,0,0,.25));}
+  .logo{display:flex;align-items:center;gap:14px;min-height:104px;width:fit-content;}
+  .logo img{height:104px;width:auto;position:relative;z-index:1;}
+  .logo.light{position:relative;}
+  .logo.light::before{
+    content:"";
+    position:absolute;
+    inset:-22px -34px;
+    background:radial-gradient(ellipse at center,rgba(255,255,255,.85) 0%,rgba(255,255,255,.35) 45%,transparent 75%);
+    filter:blur(14px);
+    z-index:0;
+  }
 
   /* ---- header ---- */
   header{
