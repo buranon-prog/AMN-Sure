@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+<script>document.documentElement.classList.add('js');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AMN SURE | เครื่องมือแพทย์คุณภาพ ซื้อ-ขาย-ฝากขาย</title>
@@ -428,6 +429,130 @@
     color:var(--text-light);
     font-size:13px;
   }
+
+  /* ---- hero motion ---- */
+  .hero{background-size:160% 160%;animation:heroDrift 14s ease-in-out infinite;}
+  @keyframes heroDrift{
+    0%,100%{background-position:80% 0%;}
+    50%{background-position:20% 40%;}
+  }
+  .hero-inner > *{animation:riseIn .9s cubic-bezier(.2,.8,.2,1) both;}
+  .hero-inner .eyebrow{animation-delay:.05s;}
+  .hero-inner h1{animation-delay:.15s;}
+  .hero-inner p.lead{animation-delay:.3s;}
+  .hero-inner .hero-actions{animation-delay:.45s;}
+  @keyframes riseIn{
+    from{opacity:0;transform:translateY(26px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  .btn-primary{position:relative;}
+  .btn-primary::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:999px;
+    box-shadow:0 0 0 0 rgba(63,122,92,.55);
+    animation:btnPulse 2.6s ease-out infinite;
+    pointer-events:none;
+  }
+  @keyframes btnPulse{
+    0%{box-shadow:0 0 0 0 rgba(63,122,92,.45);}
+    70%{box-shadow:0 0 0 16px rgba(63,122,92,0);}
+    100%{box-shadow:0 0 0 0 rgba(63,122,92,0);}
+  }
+
+  /* ---- 3d logo showcase ---- */
+  .showcase{
+    position:relative;
+    background:radial-gradient(circle at 50% 40%,#173B2E 0%,#0d251d 55%,#071310 100%);
+    padding:130px 0 150px;
+    overflow:hidden;
+    text-align:center;
+  }
+  .showcase-glow{
+    position:absolute;
+    top:38%;left:50%;
+    width:560px;height:560px;
+    background:radial-gradient(circle,rgba(111,169,137,.4),transparent 70%);
+    transform:translate(-50%,-50%);
+    filter:blur(6px);
+    animation:showcasePulse 4.5s ease-in-out infinite;
+  }
+  @keyframes showcasePulse{
+    0%,100%{opacity:.55;transform:translate(-50%,-50%) scale(1);}
+    50%{opacity:1;transform:translate(-50%,-50%) scale(1.18);}
+  }
+  .showcase-particle{
+    position:absolute;
+    border-radius:50%;
+    background:var(--green-soft);
+    opacity:.35;
+    filter:blur(1px);
+    animation:floaty 6s ease-in-out infinite;
+  }
+  @keyframes floaty{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-22px);}
+  }
+  .showcase-eyebrow{position:relative;z-index:1;color:var(--green-soft);}
+  .showcase-eyebrow::before{background:var(--green-soft);}
+  .showcase-3d{
+    position:relative;
+    z-index:1;
+    perspective:1400px;
+    width:min(360px,70vw);
+    height:240px;
+    margin:36px auto 30px;
+  }
+  .showcase-3d-inner{
+    width:100%;height:100%;
+    display:flex;align-items:center;justify-content:center;
+    transform-style:preserve-3d;
+    animation:spin3d 11s linear infinite;
+  }
+  .showcase-3d-inner img{
+    max-width:100%;
+    max-height:100%;
+    filter:drop-shadow(0 30px 36px rgba(0,0,0,.55));
+  }
+  @keyframes spin3d{
+    from{transform:rotateY(0deg);}
+    to{transform:rotateY(360deg);}
+  }
+  .showcase-tagline{
+    position:relative;
+    z-index:1;
+    color:rgba(255,255,255,.85);
+    font-family:'Cormorant Garamond',serif;
+    font-style:italic;
+    font-weight:600;
+    font-size:22px;
+    letter-spacing:.03em;
+    max-width:520px;
+    margin:0 auto;
+  }
+  @media(max-width:720px){
+    .showcase{padding:90px 0 110px;}
+    .showcase-3d{height:180px;}
+  }
+
+  /* ---- scroll reveal (progressive enhancement: hidden only once .js confirms JS runs) ---- */
+  .js .reveal{
+    opacity:0;
+    transform:translateY(28px);
+    transition:opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1);
+  }
+  .js .reveal.in-view{opacity:1;transform:translateY(0);}
+  .reveal-group > *{transition-delay:calc(var(--i, 0) * 90ms);}
+
+  @media(prefers-reduced-motion: reduce){
+    .hero,.hero-inner > *,.btn-primary::after,.showcase-glow,.showcase-particle,.showcase-3d-inner,.reveal{
+      animation:none !important;
+      transition:none !important;
+      opacity:1 !important;
+      transform:none !important;
+    }
+  }
 </style>
 </head>
 <body>
@@ -468,16 +593,37 @@
   </div>
 </section>
 
+<section class="showcase">
+  <div class="showcase-glow"></div>
+  <span class="showcase-particle" style="width:10px;height:10px;top:22%;left:18%;animation-delay:.2s;"></span>
+  <span class="showcase-particle" style="width:6px;height:6px;top:30%;left:78%;animation-delay:1.4s;"></span>
+  <span class="showcase-particle" style="width:8px;height:8px;top:68%;left:14%;animation-delay:2.2s;"></span>
+  <span class="showcase-particle" style="width:5px;height:5px;top:72%;left:82%;animation-delay:.8s;"></span>
+  <div class="container">
+    <span class="eyebrow showcase-eyebrow">Trusted Identity</span>
+    <div class="showcase-3d">
+      <div class="showcase-3d-inner">
+        <img src="logo.png" alt="AMN SURE" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <span class="logo-fallback lg" style="display:none;">
+          <span class="ring-mark"><span class="ring-loop"></span><span class="ring-loop"></span></span>
+          <span class="word">AMN<span>&nbsp;SURE</span></span>
+        </span>
+      </div>
+    </div>
+    <p class="showcase-tagline">มาตรฐานที่คุณวางใจได้ ในทุกการซื้อขายเครื่องมือแพทย์</p>
+  </div>
+</section>
+
 <section id="about">
   <div class="container about-grid">
-    <div class="about-visual">
+    <div class="about-visual reveal">
       <img src="logo.png" alt="AMN SURE" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
       <span class="logo-fallback on-light lg">
         <span class="ring-mark"><span class="ring-loop"></span><span class="ring-loop"></span></span>
         <span class="word">AMN<span>&nbsp;SURE</span></span>
       </span>
     </div>
-    <div>
+    <div class="reveal">
       <span class="eyebrow">About AMN SURE</span>
       <h2>มาตรฐานที่เชื่อถือได้<br>ในทุกการซื้อขาย</h2>
       <p>เราให้บริการด้านเครื่องมือแพทย์มือสองแบบครบวงจร ตั้งแต่การรับซื้อ ตรวจสอบสภาพและคุณภาพ ซ่อมบำรุง ไปจนถึงการจัดจำหน่ายให้กับสถานพยาบาลทั่วประเทศ ด้วยทีมงานผู้เชี่ยวชาญเฉพาะทางและกระบวนการตรวจสอบที่เข้มงวด</p>
@@ -492,30 +638,30 @@
 
 <section class="services" id="services">
   <div class="container">
-    <div class="section-head center">
+    <div class="section-head center reveal">
       <span class="eyebrow" style="margin:0 auto;justify-content:center;">Our Services</span>
       <h2>บริการของเรา</h2>
     </div>
-    <div class="service-grid">
-      <div class="service-card">
+    <div class="service-grid reveal-group">
+      <div class="service-card reveal" style="--i:0;">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
         </div>
         <h3>ซื้อ-ขายเครื่องมือแพทย์</h3>
       </div>
-      <div class="service-card">
+      <div class="service-card reveal" style="--i:1;">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4 8l8-5 8 5M6 21h12"/></svg>
         </div>
         <h3>รับฝากขาย (Consignment)</h3>
       </div>
-      <div class="service-card">
+      <div class="service-card reveal" style="--i:2;">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/></svg>
         </div>
         <h3>ตรวจสอบและรับรองคุณภาพ</h3>
       </div>
-      <div class="service-card">
+      <div class="service-card reveal" style="--i:3;">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.6c0 5.4-8.8 10-8.8 10s-8.8-4.6-8.8-10a4.9 4.9 0 018.8-3 4.9 4.9 0 018.8 3z"/></svg>
         </div>
@@ -527,27 +673,27 @@
 
 <section class="band" id="why">
   <div class="container">
-    <div class="section-head center">
+    <div class="section-head center reveal">
       <span class="eyebrow" style="margin:0 auto;justify-content:center;">Why Choose Us</span>
       <h2>ทำไมต้อง SURE</h2>
     </div>
-    <div class="why-grid">
-      <div class="why-item">
+    <div class="why-grid reveal-group">
+      <div class="why-item reveal" style="--i:0;">
         <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 1-4.5 4.4L17.5 20 12 17l-5.5 3 1-6.6L3 9l6-1 3-6z"/></svg></div>
         <h3>มาตรฐาน</h3>
         <p>ตรวจสอบคุณภาพทุกชิ้นตามมาตรฐานสากล</p>
       </div>
-      <div class="why-item">
+      <div class="why-item reveal" style="--i:1;">
         <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c4.97-4 8-7.58 8-11a8 8 0 10-16 0c0 3.42 3.03 7 8 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
         <h3>ราคายุติธรรม</h3>
         <p>ประเมินราคาโปร่งใส คุ้มค่าทุกการลงทุน</p>
       </div>
-      <div class="why-item">
+      <div class="why-item reveal" style="--i:2;">
         <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
         <h3>บริการรวดเร็ว</h3>
         <p>ทีมงานดูแลและตอบกลับอย่างรวดเร็วทันใจ</p>
       </div>
-      <div class="why-item">
+      <div class="why-item reveal" style="--i:3;">
         <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/></svg></div>
         <h3>ซื่อสัตย์โปร่งใส</h3>
         <p>ดำเนินธุรกิจด้วยความจริงใจตรวจสอบได้</p>
@@ -558,7 +704,7 @@
 
 <section class="cta" id="contact">
   <div class="container">
-    <div class="cta-box">
+    <div class="cta-box reveal">
       <span class="eyebrow" style="margin:0 auto;justify-content:center;">Get In Touch</span>
       <h2>พร้อมให้คำปรึกษา<br>ทุกความต้องการของคุณ</h2>
       <p>ติดต่อทีมงาน AMN SURE เพื่อสอบถามข้อมูลเครื่องมือแพทย์ ซื้อ-ขาย หรือฝากขาย ได้ทุกช่องทาง</p>
@@ -635,6 +781,26 @@
     </div>
   </div>
 </div>
+
+<script>
+  var revealItems = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+    revealItems.forEach(function (item) { revealObserver.observe(item); });
+    setTimeout(function () {
+      revealItems.forEach(function (item) { item.classList.add('in-view'); });
+    }, 4000);
+  } else {
+    revealItems.forEach(function (item) { item.classList.add('in-view'); });
+  }
+</script>
 
 </body>
 </html>
