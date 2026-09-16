@@ -97,16 +97,6 @@
   /* ---- logo ---- */
   .logo{display:flex;align-items:center;gap:14px;min-height:104px;width:fit-content;}
   .logo img{height:104px;width:auto;position:relative;z-index:1;}
-  .logo.light{position:relative;}
-  .logo.light::before{
-    content:"";
-    position:absolute;
-    inset:-22px -34px;
-    background:radial-gradient(ellipse at center,rgba(255,255,255,.85) 0%,rgba(255,255,255,.35) 45%,transparent 75%);
-    filter:blur(14px);
-    z-index:0;
-  }
-
   /* ---- header ---- */
   header{
     position:sticky;
@@ -293,8 +283,8 @@
 
   /* ---- footer ---- */
   footer{
-    background:var(--green-dark);
-    color:rgba(255,255,255,.75);
+    background:linear-gradient(160deg,var(--green-mist) 0%,var(--green-soft) 100%);
+    color:var(--text);
     padding:70px 0 30px;
   }
   .footer-grid{
@@ -302,11 +292,11 @@
     grid-template-columns:1.4fr 1fr 1fr;
     gap:50px;
     padding-bottom:50px;
-    border-bottom:1px solid rgba(255,255,255,.12);
+    border-bottom:1px solid rgba(23,59,46,.15);
   }
-  .footer-grid p{color:rgba(255,255,255,.6);font-size:14px;margin-top:18px;max-width:320px;}
+  .footer-grid p{color:var(--text-light);font-size:14px;margin-top:18px;max-width:320px;}
   .footer-col h4{
-    color:var(--white);
+    color:var(--green-dark);
     font-size:14px;
     letter-spacing:.08em;
     text-transform:uppercase;
@@ -314,16 +304,16 @@
     margin-bottom:20px;
   }
   .footer-col ul{display:grid;gap:14px;}
-  .footer-col li{display:flex;gap:12px;font-size:14px;color:rgba(255,255,255,.72);}
-  .footer-col li svg{flex:none;width:18px;height:18px;stroke:var(--green-soft);margin-top:2px;}
-  .footer-col a:hover{color:var(--white);}
+  .footer-col li{display:flex;gap:12px;font-size:14px;color:var(--text);}
+  .footer-col li svg{flex:none;width:18px;height:18px;stroke:var(--green);margin-top:2px;}
+  .footer-col a:hover{color:var(--green-dark);}
   .footer-bottom{
     display:flex;
     justify-content:space-between;
     align-items:center;
     padding-top:26px;
     font-size:13px;
-    color:rgba(255,255,255,.45);
+    color:var(--text-light);
     flex-wrap:wrap;
     gap:10px;
   }
