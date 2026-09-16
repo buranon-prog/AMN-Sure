@@ -95,7 +95,7 @@
 
   /* ---- logo ---- */
   .logo{display:flex;align-items:center;gap:14px;}
-  .logo img{height:44px;width:auto;}
+  .logo img{height:72px;width:auto;}
   .logo.light{
     background:var(--white);
     padding:10px 18px;
@@ -107,14 +107,14 @@
     position:sticky;
     top:0;
     z-index:50;
-    background:rgba(255,255,255,.97);
-    border-bottom:1px solid rgba(23,59,46,.08);
+    background:#0A0A0A;
+    border-bottom:1px solid rgba(255,255,255,.08);
   }
   .nav-wrap{
     display:flex;
     align-items:center;
     justify-content:space-between;
-    padding:18px 32px;
+    padding:12px 32px;
     max-width:1180px;
     margin:0 auto;
   }
@@ -122,7 +122,7 @@
   nav a{
     font-size:15px;
     font-weight:400;
-    color:var(--text);
+    color:var(--white);
     position:relative;
     padding:6px 0;
   }
@@ -131,13 +131,13 @@
     position:absolute;
     left:0;bottom:0;
     width:0;height:1px;
-    background:var(--green);
+    background:var(--green-soft);
     transition:.3s;
   }
   nav a:hover::after{width:100%;}
   #nav-toggle{display:none;}
   .burger{display:none;cursor:pointer;flex-direction:column;gap:5px;}
-  .burger span{width:26px;height:2px;background:var(--green-dark);display:block;}
+  .burger span{width:26px;height:2px;background:var(--white);display:block;}
 
   /* ---- hero ---- */
   .hero{
@@ -339,11 +339,76 @@
       padding:30px 32px;
     }
     nav ul{flex-direction:column;align-items:flex-start;gap:22px;}
+    nav a{color:var(--text);}
     #nav-toggle:checked ~ nav{transform:translateX(0);}
     .burger{display:flex;}
     .service-grid{grid-template-columns:1fr;}
     .hero{padding:70px 0 90px;}
     .cta-box{padding:50px 26px;}
+  }
+
+  /* ---- line contact ---- */
+  .btn-line{
+    background:#06C755;
+    color:var(--white);
+    box-shadow:0 20px 45px -25px rgba(6,199,85,.6);
+  }
+  .btn-line:hover{transform:translateY(-2px);}
+  .btn-line svg{width:18px;height:18px;fill:var(--white);}
+  #line-modal{display:none;}
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:200;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  #line-modal:checked ~ .modal-overlay{display:flex;}
+  .modal-backdrop{
+    position:absolute;
+    inset:0;
+    background:rgba(10,10,10,.6);
+  }
+  .modal-box{
+    position:relative;
+    z-index:1;
+    background:var(--white);
+    border-radius:24px;
+    padding:44px 40px;
+    max-width:340px;
+    width:100%;
+    text-align:center;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,.4);
+  }
+  .modal-close{
+    position:absolute;
+    top:16px;right:16px;
+    width:32px;height:32px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--green-mist);
+    color:var(--green-dark);
+    cursor:pointer;
+    font-size:16px;
+  }
+  .modal-box h3{font-size:19px;margin-bottom:6px;}
+  .modal-box p{font-size:13.5px;margin-bottom:24px;}
+  .qr-placeholder{
+    width:220px;
+    height:220px;
+    margin:0 auto;
+    border:2px dashed var(--green-soft);
+    border-radius:16px;
+    background:var(--green-mist);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    color:var(--text-light);
+    font-size:13px;
   }
 </style>
 </head>
@@ -472,7 +537,11 @@
       <h2>พร้อมให้คำปรึกษา<br>ทุกความต้องการของคุณ</h2>
       <p>ติดต่อทีมงาน AMN Sure เพื่อสอบถามข้อมูลเครื่องมือแพทย์ ซื้อ-ขาย หรือฝากขาย ได้ทุกช่องทาง</p>
       <div class="cta-actions">
-        <a href="tel:0813182189" class="btn btn-primary">โทร 081-318-2189</a>
+        <a href="tel:0812354316" class="btn btn-primary">โทร 081-235-4316</a>
+        <label for="line-modal" class="btn btn-line">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 5.66 2 10.15c0 4.02 3.58 7.39 8.42 8.03.33.07.77.22.88.5.1.26.07.66.03.92l-.14.87c-.04.26-.2 1 .88.55 1.08-.46 5.82-3.43 7.94-5.87C21.42 13.5 22 11.9 22 10.15 22 5.66 17.52 2 12 2z"/></svg>
+          ติดต่อผ่าน LINE
+        </label>
         <a href="mailto:sure@amnsure.co.th" class="btn btn-outline">sure@amnsure.co.th</a>
       </div>
     </div>
@@ -506,7 +575,7 @@
           </li>
           <li>
             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.5 2.1L8 9.7a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.5c.9.3 1.8.5 2.7.6a2 2 0 011.7 2.1z"/></svg>
-            <a href="tel:0813182189">081-318-2189</a>
+            <a href="tel:0812354316">081-235-4316</a>
           </li>
           <li>
             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 6l8 7 8-7"/></svg>
@@ -516,11 +585,26 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 AMN Sure. All rights reserved.</span>
+      <span>© 2026 AMN SURE. All rights reserved.</span>
       <span>ออกแบบด้วยความใส่ใจ เพื่อความเชื่อมั่นของคุณ</span>
     </div>
   </div>
 </footer>
+
+<input type="checkbox" id="line-modal">
+<div class="modal-overlay">
+  <label for="line-modal" class="modal-backdrop"></label>
+  <div class="modal-box">
+    <label for="line-modal" class="modal-close">&times;</label>
+    <h3>เพิ่มเพื่อน LINE</h3>
+    <p>สแกน QR Code เพื่อติดต่อ AMN Sure ผ่าน LINE</p>
+    <!-- แทนที่กล่องนี้ด้วย <img src="line-qr.png"> เมื่อมีไฟล์ QR Code -->
+    <div class="qr-placeholder">
+      <span>QR Code</span>
+      <span>เร็วๆ นี้</span>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
