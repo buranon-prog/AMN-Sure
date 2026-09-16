@@ -97,11 +97,11 @@
   .logo{display:flex;align-items:center;gap:14px;min-height:96px;}
   .logo img{height:96px;width:auto;}
   .logo.light{
-    border:1px solid rgba(255,255,255,.25);
-    padding:10px 18px;
-    border-radius:14px;
+    background:linear-gradient(160deg,#ffffff,var(--green-mist));
+    padding:12px 20px;
+    border-radius:16px;
+    box-shadow:0 16px 32px -16px rgba(0,0,0,.4);
   }
-  .logo.light img{filter:brightness(0) invert(1);}
   .logo-fallback{display:none;align-items:center;gap:12px;}
   .ring-mark{display:flex;}
   .ring-loop{
@@ -580,7 +580,7 @@
       <div>
         <a href="#top" class="logo light">
           <img src="logo.png" alt="AMN SURE" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-          <span class="logo-fallback">
+          <span class="logo-fallback on-light">
             <span class="ring-mark"><span class="ring-loop"></span><span class="ring-loop"></span></span>
             <span class="word">AMN<span>&nbsp;SURE</span></span>
           </span>
