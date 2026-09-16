@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMN SURE | เครื่องมือแพทย์คุณภาพ ซื้อ-ขาย-ฝากขาย</title>
+<meta name="description" content="AMN Sure ผู้เชี่ยวชาญด้านการซื้อ-ขายและรับฝากขายเครื่องมือแพทย์มือสองคุณภาพ ตรวจสอบมาตรฐาน เชื่อถือได้">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green-dark:#173B2E;
+    --green:#3F7A5C;
+    --green-mid:#6FA989;
+    --green-soft:#BFDCCA;
+    --green-mist:#EEF6F1;
+    --white:#FFFFFF;
+    --text:#33443C;
+    --text-light:#6B7C74;
+    --shadow: 0 20px 45px -25px rgba(23,59,46,0.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Prompt', sans-serif;
+    color:var(--text);
+    background:var(--white);
+    line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  a{text-decoration:none;color:inherit;}
+  ul{list-style:none;}
+  img,svg{display:block;max-width:100%;}
+  .container{
+    width:100%;
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 32px;
+  }
+  .eyebrow{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-weight:600;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--green);
+    font-size:15px;
+    display:inline-flex;
+    align-items:center;
+    gap:12px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:34px;
+    height:1px;
+    background:var(--green-mid);
+    display:inline-block;
+  }
+  h1,h2,h3{
+    font-weight:600;
+    color:var(--green-dark);
+  }
+  h2{
+    font-size:clamp(28px,3.4vw,40px);
+    margin:14px 0 18px;
+    letter-spacing:.01em;
+  }
+  p{color:var(--text-light);}
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:16px 34px;
+    border-radius:999px;
+    font-weight:500;
+    font-size:15px;
+    letter-spacing:.03em;
+    transition:.35s ease;
+    border:1px solid transparent;
+  }
+  .btn-primary{
+    background:linear-gradient(120deg,var(--green-dark),var(--green));
+    color:var(--white);
+    box-shadow:var(--shadow);
+  }
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 24px 40px -20px rgba(23,59,46,.5);}
+  .btn-outline{
+    border-color:var(--green-soft);
+    color:var(--green-dark);
+    background:var(--white);
+  }
+  .btn-outline:hover{background:var(--green-mist);}
+
+  /* ---- logo ---- */
+  .logo{display:flex;align-items:center;gap:14px;}
+  .logo svg{width:52px;height:auto;}
+  .logo-text{
+    font-size:22px;
+    font-weight:700;
+    letter-spacing:.18em;
+    color:var(--green-dark);
+  }
+  .logo-text span{
+    color:var(--green);
+    font-weight:500;
+  }
+  .logo.light .logo-text{color:var(--white);}
+  .logo.light .logo-text span{color:var(--green-soft);}
+
+  /* ---- header ---- */
+  header{
+    position:sticky;
+    top:0;
+    z-index:50;
+    background:rgba(255,255,255,.97);
+    border-bottom:1px solid rgba(23,59,46,.08);
+  }
+  .nav-wrap{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 32px;
+    max-width:1180px;
+    margin:0 auto;
+  }
+  nav ul{display:flex;gap:38px;align-items:center;}
+  nav a{
+    font-size:15px;
+    font-weight:400;
+    color:var(--text);
+    position:relative;
+    padding:6px 0;
+  }
+  nav a::after{
+    content:"";
+    position:absolute;
+    left:0;bottom:0;
+    width:0;height:1px;
+    background:var(--green);
+    transition:.3s;
+  }
+  nav a:hover::after{width:100%;}
+  #nav-toggle{display:none;}
+  .burger{display:none;cursor:pointer;flex-direction:column;gap:5px;}
+  .burger span{width:26px;height:2px;background:var(--green-dark);display:block;}
+
+  /* ---- hero ---- */
+  .hero{
+    position:relative;
+    padding:110px 0 130px;
+    background:radial-gradient(ellipse at top right, var(--green-mist) 0%, var(--white) 60%);
+    overflow:hidden;
+  }
+  .hero-bg-icon{
+    position:absolute;
+    right:-120px;
+    top:-60px;
+    width:640px;
+    opacity:.12;
+    z-index:0;
+  }
+  .hero-inner{
+    position:relative;
+    z-index:1;
+    max-width:720px;
+  }
+  .hero h1{
+    font-size:clamp(36px,5vw,58px);
+    line-height:1.25;
+    margin:18px 0 24px;
+  }
+  .hero h1 em{
+    font-style:normal;
+    background:linear-gradient(120deg,var(--green),var(--green-dark));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero p.lead{
+    font-size:17px;
+    max-width:560px;
+    margin-bottom:38px;
+  }
+  .hero-actions{display:flex;gap:18px;flex-wrap:wrap;}
+  .hero-stats{
+    display:flex;
+    gap:56px;
+    margin-top:72px;
+    flex-wrap:wrap;
+  }
+  .hero-stats div b{
+    display:block;
+    font-size:30px;
+    color:var(--green-dark);
+    font-weight:700;
+  }
+  .hero-stats div span{
+    font-size:13px;
+    color:var(--text-light);
+    letter-spacing:.04em;
+  }
+
+  /* ---- section generic ---- */
+  section{padding:100px 0;}
+  .section-head{max-width:640px;margin-bottom:56px;}
+  .section-head.center{margin-left:auto;margin-right:auto;text-align:center;}
+
+  /* ---- about ---- */
+  .about-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:70px;
+    align-items:center;
+  }
+  .about-visual{
+    background:linear-gradient(160deg,var(--green-mist), #fff);
+    border:1px solid var(--green-soft);
+    border-radius:28px;
+    padding:56px 40px;
+    position:relative;
+  }
+  .about-visual svg{width:100%;max-width:280px;margin:0 auto;opacity:.9;}
+  .about-points{display:grid;gap:22px;margin-top:30px;}
+  .about-points li{
+    display:flex;
+    gap:16px;
+    align-items:flex-start;
+    font-size:15px;
+    color:var(--text);
+  }
+  .about-points .dot{
+    flex:none;
+    width:10px;height:10px;
+    margin-top:7px;
+    border-radius:50%;
+    background:linear-gradient(120deg,var(--green),var(--green-dark));
+  }
+
+  /* ---- services ---- */
+  .services{background:var(--green-mist);}
+  .service-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:26px;
+  }
+  .service-card{
+    background:var(--white);
+    border-radius:22px;
+    padding:38px 28px;
+    border:1px solid rgba(23,59,46,.06);
+    transition:.35s ease;
+  }
+  .service-card:hover{
+    transform:translateY(-8px);
+    box-shadow:var(--shadow);
+    border-color:transparent;
+  }
+  .service-icon{
+    width:54px;height:54px;
+    border-radius:16px;
+    background:linear-gradient(135deg,var(--green-soft),var(--green-mid));
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:22px;
+  }
+  .service-icon svg{width:26px;height:26px;stroke:var(--green-dark);}
+  .service-card h3{font-size:18px;margin-bottom:10px;}
+  .service-card p{font-size:14px;}
+
+  /* ---- why us / stats band ---- */
+  .band{
+    background:linear-gradient(120deg,var(--green-dark),#1f4a3a);
+    color:var(--white);
+    padding:90px 0;
+  }
+  .band .section-head h2{color:var(--white);}
+  .band .eyebrow{color:var(--green-soft);}
+  .band .eyebrow::before{background:var(--green-soft);}
+  .why-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:36px;
+  }
+  .why-item{text-align:center;padding:0 10px;}
+  .why-item .ring{
+    width:64px;height:64px;
+    margin:0 auto 20px;
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,.35);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .why-item .ring svg{width:26px;height:26px;stroke:var(--green-soft);}
+  .why-item h3{color:var(--white);font-size:16px;margin-bottom:8px;}
+  .why-item p{color:rgba(255,255,255,.68);font-size:13.5px;}
+
+  /* ---- cta ---- */
+  .cta{
+    text-align:center;
+    padding:110px 0;
+  }
+  .cta-box{
+    max-width:760px;
+    margin:0 auto;
+    padding:70px 50px;
+    border-radius:32px;
+    background:linear-gradient(150deg,var(--green-mist),#fff);
+    border:1px solid var(--green-soft);
+  }
+  .cta-box h2{margin-top:8px;}
+  .cta-box p{max-width:480px;margin:0 auto 34px;}
+  .cta-actions{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;}
+
+  /* ---- footer ---- */
+  footer{
+    background:var(--green-dark);
+    color:rgba(255,255,255,.75);
+    padding:70px 0 30px;
+  }
+  .footer-grid{
+    display:grid;
+    grid-template-columns:1.4fr 1fr 1fr;
+    gap:50px;
+    padding-bottom:50px;
+    border-bottom:1px solid rgba(255,255,255,.12);
+  }
+  .footer-grid p{color:rgba(255,255,255,.6);font-size:14px;margin-top:18px;max-width:320px;}
+  .footer-col h4{
+    color:var(--white);
+    font-size:14px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    font-weight:500;
+    margin-bottom:20px;
+  }
+  .footer-col ul{display:grid;gap:14px;}
+  .footer-col li{display:flex;gap:12px;font-size:14px;color:rgba(255,255,255,.72);}
+  .footer-col li svg{flex:none;width:18px;height:18px;stroke:var(--green-soft);margin-top:2px;}
+  .footer-col a:hover{color:var(--white);}
+  .footer-bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:26px;
+    font-size:13px;
+    color:rgba(255,255,255,.45);
+    flex-wrap:wrap;
+    gap:10px;
+  }
+
+  @media(max-width:960px){
+    .about-grid{grid-template-columns:1fr;}
+    .service-grid{grid-template-columns:repeat(2,1fr);}
+    .why-grid{grid-template-columns:repeat(2,1fr);row-gap:40px;}
+    .footer-grid{grid-template-columns:1fr;gap:34px;}
+  }
+  @media(max-width:720px){
+    nav{
+      position:fixed;
+      inset:70px 0 0 0;
+      background:var(--white);
+      transform:translateX(100%);
+      transition:.35s ease;
+      padding:30px 32px;
+    }
+    nav ul{flex-direction:column;align-items:flex-start;gap:22px;}
+    #nav-toggle:checked ~ nav{transform:translateX(0);}
+    .burger{display:flex;}
+    .service-grid{grid-template-columns:1fr;}
+    .hero{padding:70px 0 90px;}
+    .hero-stats{gap:34px;}
+    .cta-box{padding:50px 26px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav-wrap">
+    <a href="#top" class="logo">
+      <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="loopA" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#EAF4EE"/>
+            <stop offset="45%" stop-color="#8FBFA1"/>
+            <stop offset="100%" stop-color="#2E5C46"/>
+          </linearGradient>
+          <linearGradient id="loopB" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#F5FAF7"/>
+            <stop offset="50%" stop-color="#A9CFB7"/>
+            <stop offset="100%" stop-color="#3F7A5C"/>
+          </linearGradient>
+        </defs>
+        <path d="M50 20 C20 20 20 80 50 80 C80 80 80 20 50 20 Z" fill="none" stroke="url(#loopA)" stroke-width="11"/>
+        <path d="M150 20 C120 20 120 80 150 80 C180 80 180 20 150 20 Z" fill="none" stroke="url(#loopB)" stroke-width="11"/>
+      </svg>
+      <span class="logo-text">AMN<span>&nbsp;SURE</span></span>
+    </a>
+
+    <input type="checkbox" id="nav-toggle">
+    <nav>
+      <ul>
+        <li><a href="#top">หน้าแรก</a></li>
+        <li><a href="#about">เกี่ยวกับเรา</a></li>
+        <li><a href="#services">บริการของเรา</a></li>
+        <li><a href="#why">ทำไมต้องเรา</a></li>
+        <li><a href="#contact"><span class="btn btn-primary" style="padding:10px 22px;">ติดต่อเรา</span></a></li>
+      </ul>
+    </nav>
+    <label for="nav-toggle" class="burger"><span></span><span></span><span></span></label>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <svg class="hero-bg-icon" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+    <path d="M50 20 C20 20 20 80 50 80 C80 80 80 20 50 20 Z" fill="none" stroke="#3F7A5C" stroke-width="6"/>
+    <path d="M150 20 C120 20 120 80 150 80 C180 80 180 20 150 20 Z" fill="none" stroke="#173B2E" stroke-width="6"/>
+  </svg>
+  <div class="container hero-inner">
+    <span class="eyebrow">Medical Equipment Specialist</span>
+    <h1>เครื่องมือแพทย์คุณภาพ<br>ที่คุณ<em>วางใจได้</em></h1>
+    <p class="lead">AMN Sure คือผู้เชี่ยวชาญด้านการซื้อ-ขายและรับฝากขายเครื่องมือแพทย์มือสอง ผ่านการตรวจสอบมาตรฐานอย่างเข้มงวด เพื่อส่งมอบความมั่นใจให้กับสถานพยาบาลทุกขนาด</p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn btn-primary">ติดต่อสอบถาม</a>
+      <a href="#services" class="btn btn-outline">ดูบริการของเรา</a>
+    </div>
+    <div class="hero-stats">
+      <div><b>10+</b><span>ปีประสบการณ์</span></div>
+      <div><b>1,500+</b><span>เครื่องมือแพทย์ที่ผ่านมือเรา</span></div>
+      <div><b>300+</b><span>สถานพยาบาลที่ไว้วางใจ</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="container about-grid">
+    <div class="about-visual">
+      <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="aboutA" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#EAF4EE"/>
+            <stop offset="50%" stop-color="#8FBFA1"/>
+            <stop offset="100%" stop-color="#2E5C46"/>
+          </linearGradient>
+        </defs>
+        <path d="M50 20 C20 20 20 80 50 80 C80 80 80 20 50 20 Z" fill="none" stroke="url(#aboutA)" stroke-width="10"/>
+        <path d="M150 20 C120 20 120 80 150 80 C180 80 180 20 150 20 Z" fill="none" stroke="url(#aboutA)" stroke-width="10"/>
+      </svg>
+    </div>
+    <div>
+      <span class="eyebrow">About AMN Sure</span>
+      <h2>มาตรฐานที่เชื่อถือได้<br>ในทุกการซื้อขาย</h2>
+      <p>เราให้บริการด้านเครื่องมือแพทย์มือสองแบบครบวงจร ตั้งแต่การรับซื้อ ตรวจสอบสภาพและคุณภาพ ซ่อมบำรุง ไปจนถึงการจัดจำหน่ายให้กับสถานพยาบาลทั่วประเทศ ด้วยทีมงานผู้เชี่ยวชาญเฉพาะทางและกระบวนการตรวจสอบที่เข้มงวด</p>
+      <ul class="about-points">
+        <li><span class="dot"></span>ตรวจสอบคุณภาพและความปลอดภัยทุกชิ้นก่อนส่งมอบ</li>
+        <li><span class="dot"></span>บริการรับฝากขายพร้อมระบบที่โปร่งใส ตรวจสอบได้</li>
+        <li><span class="dot"></span>ทีมงานผู้เชี่ยวชาญให้คำปรึกษาตลอดกระบวนการ</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="services" id="services">
+  <div class="container">
+    <div class="section-head center">
+      <span class="eyebrow" style="margin:0 auto;justify-content:center;">Our Services</span>
+      <h2>บริการของเรา</h2>
+      <p>ครอบคลุมทุกความต้องการด้านเครื่องมือแพทย์ ตั้งแต่การจัดหาไปจนถึงบริการหลังการขาย</p>
+    </div>
+    <div class="service-grid">
+      <div class="service-card">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
+        </div>
+        <h3>ซื้อ-ขายเครื่องมือแพทย์</h3>
+        <p>รับซื้อและจำหน่ายเครื่องมือแพทย์มือสองคุณภาพสูง ผ่านการตรวจสอบอย่างละเอียดในทุกขั้นตอน</p>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4 8l8-5 8 5M6 21h12"/></svg>
+        </div>
+        <h3>รับฝากขาย (Consignment)</h3>
+        <p>บริการฝากขายเครื่องมือแพทย์ พร้อมระบบจัดการที่โปร่งใสและตรวจสอบสถานะได้ตลอดเวลา</p>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/></svg>
+        </div>
+        <h3>ตรวจสอบและรับรองคุณภาพ</h3>
+        <p>ทุกชิ้นผ่านการตรวจเช็คสภาพและมาตรฐานความปลอดภัยอย่างเข้มงวดก่อนส่งมอบถึงมือคุณ</p>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.6c0 5.4-8.8 10-8.8 10s-8.8-4.6-8.8-10a4.9 4.9 0 018.8-3 4.9 4.9 0 018.8 3z"/></svg>
+        </div>
+        <h3>บริการหลังการขาย</h3>
+        <p>ให้คำปรึกษาและดูแลหลังการขายอย่างต่อเนื่อง เพื่อความมั่นใจสูงสุดในทุกการใช้งาน</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="why">
+  <div class="container">
+    <div class="section-head center">
+      <span class="eyebrow" style="margin:0 auto;justify-content:center;">Why Choose Us</span>
+      <h2>ทำไมต้อง AMN Sure</h2>
+    </div>
+    <div class="why-grid">
+      <div class="why-item">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 1-4.5 4.4L17.5 20 12 17l-5.5 3 1-6.6L3 9l6-1 3-6z"/></svg></div>
+        <h3>มาตรฐานสูง</h3>
+        <p>ตรวจสอบคุณภาพทุกชิ้นตามมาตรฐานสากล</p>
+      </div>
+      <div class="why-item">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c4.97-4 8-7.58 8-11a8 8 0 10-16 0c0 3.42 3.03 7 8 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+        <h3>ราคายุติธรรม</h3>
+        <p>ประเมินราคาโปร่งใส คุ้มค่าทุกการลงทุน</p>
+      </div>
+      <div class="why-item">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+        <h3>บริการรวดเร็ว</h3>
+        <p>ทีมงานดูแลและตอบกลับอย่างรวดเร็วทันใจ</p>
+      </div>
+      <div class="why-item">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/></svg></div>
+        <h3>ซื่อสัตย์โปร่งใส</h3>
+        <p>ดำเนินธุรกิจด้วยความจริงใจตรวจสอบได้</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta" id="contact">
+  <div class="container">
+    <div class="cta-box">
+      <span class="eyebrow" style="margin:0 auto;justify-content:center;">Get In Touch</span>
+      <h2>พร้อมให้คำปรึกษา<br>ทุกความต้องการของคุณ</h2>
+      <p>ติดต่อทีมงาน AMN Sure เพื่อสอบถามข้อมูลเครื่องมือแพทย์ ซื้อ-ขาย หรือฝากขาย ได้ทุกช่องทาง</p>
+      <div class="cta-actions">
+        <a href="tel:0813182189" class="btn btn-primary">โทร 081-318-2189</a>
+        <a href="mailto:sure@amnsure.co.th" class="btn btn-outline">sure@amnsure.co.th</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a href="#top" class="logo light">
+          <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 20 C20 20 20 80 50 80 C80 80 80 20 50 20 Z" fill="none" stroke="#BFDCCA" stroke-width="11"/>
+            <path d="M150 20 C120 20 120 80 150 80 C180 80 180 20 150 20 Z" fill="none" stroke="#BFDCCA" stroke-width="11"/>
+          </svg>
+          <span class="logo-text">AMN<span>&nbsp;SURE</span></span>
+        </a>
+        <p>ผู้เชี่ยวชาญด้านการซื้อ-ขายและรับฝากขายเครื่องมือแพทย์มือสองคุณภาพ เพื่อสถานพยาบาลที่ไว้วางใจได้</p>
+      </div>
+      <div class="footer-col">
+        <h4>เมนู</h4>
+        <ul>
+          <li><a href="#about">เกี่ยวกับเรา</a></li>
+          <li><a href="#services">บริการของเรา</a></li>
+          <li><a href="#why">ทำไมต้องเรา</a></li>
+          <li><a href="#contact">ติดต่อเรา</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>ติดต่อเรา</h4>
+        <ul>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c4.97-4 8-7.58 8-11a8 8 0 10-16 0c0 3.42 3.03 7 8 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+            <span>1168/19 อาคารลุมพินีทาวเวอร์ ชั้น 13 ถ.พระราม 4 แขวงทุ่งมหาเมฆ เขตสาทร กทม. 10120</span>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.5 2.1L8 9.7a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.5c.9.3 1.8.5 2.7.6a2 2 0 011.7 2.1z"/></svg>
+            <a href="tel:0813182189">081-318-2189</a>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 6l8 7 8-7"/></svg>
+            <a href="mailto:sure@amnsure.co.th">sure@amnsure.co.th</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 AMN Sure. All rights reserved.</span>
+      <span>ออกแบบด้วยความใส่ใจ เพื่อความเชื่อมั่นของคุณ</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
