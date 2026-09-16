@@ -94,13 +94,31 @@
   .btn-outline:hover{background:var(--green-mist);}
 
   /* ---- logo ---- */
-  .logo{display:flex;align-items:center;gap:14px;}
+  .logo{display:flex;align-items:center;gap:14px;min-height:72px;}
   .logo img{height:72px;width:auto;}
   .logo.light{
     background:var(--white);
     padding:10px 18px;
     border-radius:14px;
   }
+  .logo-fallback{display:none;align-items:center;gap:12px;}
+  .ring-mark{display:flex;}
+  .ring-loop{
+    width:30px;height:30px;
+    border-radius:50%;
+    border:5px solid transparent;
+    border-image:linear-gradient(135deg,#fff,var(--green-mid),var(--green-dark)) 1;
+  }
+  .ring-loop + .ring-loop{margin-left:-11px;}
+  .logo-fallback .word{font-weight:700;font-size:20px;letter-spacing:.16em;color:var(--white);}
+  .logo-fallback .word span{color:var(--green-soft);font-weight:500;}
+  .logo-fallback.on-light .word{color:var(--green-dark);}
+  .logo-fallback.on-light .word span{color:var(--green);}
+  .logo-fallback.on-light .ring-loop{border-image:linear-gradient(135deg,var(--green-mist),var(--green-mid),var(--green-dark)) 1;}
+  .logo-fallback.lg{justify-content:center;margin:0 auto;}
+  .logo-fallback.lg .ring-loop{width:56px;height:56px;border-width:9px;}
+  .logo-fallback.lg .ring-loop + .ring-loop{margin-left:-20px;}
+  .logo-fallback.lg .word{font-size:32px;}
 
   /* ---- header ---- */
   header{
@@ -417,7 +435,11 @@
 <header>
   <div class="nav-wrap">
     <a href="#top" class="logo">
-      <img src="logo.png" alt="AMN SURE">
+      <img src="logo.png" alt="AMN SURE" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <span class="logo-fallback">
+        <span class="ring-mark"><span class="ring-loop"></span><span class="ring-loop"></span></span>
+        <span class="word">AMN<span>&nbsp;SURE</span></span>
+      </span>
     </a>
 
     <input type="checkbox" id="nav-toggle">
@@ -449,7 +471,11 @@
 <section id="about">
   <div class="container about-grid">
     <div class="about-visual">
-      <img src="logo.png" alt="AMN SURE">
+      <img src="logo.png" alt="AMN SURE" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <span class="logo-fallback on-light lg">
+        <span class="ring-mark"><span class="ring-loop"></span><span class="ring-loop"></span></span>
+        <span class="word">AMN<span>&nbsp;SURE</span></span>
+      </span>
     </div>
     <div>
       <span class="eyebrow">About AMN Sure</span>
@@ -553,7 +579,11 @@
     <div class="footer-grid">
       <div>
         <a href="#top" class="logo light">
-          <img src="logo.png" alt="AMN SURE">
+          <img src="logo.png" alt="AMN SURE" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <span class="logo-fallback on-light">
+            <span class="ring-mark"><span class="ring-loop"></span><span class="ring-loop"></span></span>
+            <span class="word">AMN<span>&nbsp;SURE</span></span>
+          </span>
         </a>
         <p>ผู้เชี่ยวชาญด้านการซื้อ-ขายและรับฝากขายเครื่องมือแพทย์มือสองคุณภาพ เพื่อสถานพยาบาลที่ไว้วางใจได้</p>
       </div>
