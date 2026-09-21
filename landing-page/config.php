@@ -2,9 +2,9 @@
 // ตั้งค่าการเชื่อมต่อฐานข้อมูล MySQL — แก้ค่าด้านล่างให้ตรงกับฐานข้อมูลที่สร้างไว้ใน cPanel
 // (MySQL Database Wizard) ก่อนอัปโหลดไฟล์นี้ขึ้นโฮสต์จริง
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'changeme_used_equipment');
-define('DB_USER', 'changeme_db_user');
-define('DB_PASS', 'changeme_db_password');
+define('DB_NAME', 'amnsureco_amnsure_used');
+define('DB_USER', 'amnsureco_gmamnsure');
+define('DB_PASS', 'ใส่รหัสผ่านฐานข้อมูลที่คุณสุ่ม/ตั้งไว้ตอนสร้าง user ตรงนี้');
 
 // ข้อมูลล็อกอินหน้าแอดมิน — เปลี่ยนรหัสผ่านก่อนใช้งานจริงเสมอ
 // วิธีสร้างรหัสผ่านใหม่: รันคำสั่งนี้ครั้งเดียวแล้วลบไฟล์ทิ้ง
