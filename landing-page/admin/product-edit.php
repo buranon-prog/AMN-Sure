@@ -7,7 +7,7 @@ requireLogin();
 
 $id = isset($_GET['id']) ? (int) $_GET['id'] : (isset($_POST['id']) ? (int) $_POST['id'] : 0);
 $product = [
-    'id' => 0, 'name' => '', 'brand' => '', 'model' => '', 'price' => '',
+    'id' => 0, 'name' => '', 'brand' => '', 'model' => '',
     'condition_text' => '', 'description' => '', 'image_path' => null, 'status' => 'available',
 ];
 $error = '';
@@ -29,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $product['name'] = trim($_POST['name'] ?? '');
     $product['brand'] = trim($_POST['brand'] ?? '');
     $product['model'] = trim($_POST['model'] ?? '');
-    $product['price'] = trim($_POST['price'] ?? '');
     $product['condition_text'] = trim($_POST['condition_text'] ?? '');
     $product['description'] = trim($_POST['description'] ?? '');
     $product['status'] = in_array($_POST['status'] ?? '', ['available', 'sold', 'hidden'], true)
@@ -37,8 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($product['name'] === '') {
         $error = 'กรุณากรอกชื่อสินค้า';
-    } elseif ($product['price'] !== '' && !is_numeric($product['price'])) {
-        $error = 'ราคาต้องเป็นตัวเลขเท่านั้น';
     }
 
     if ($error === '') {
@@ -49,23 +46,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $imagePath = $uploaded;
             }
 
-            $priceValue = $product['price'] === '' ? null : (float) $product['price'];
-
             if ($id) {
                 $stmt = getDb()->prepare(
-                    'UPDATE products SET name=?, brand=?, model=?, price=?, condition_text=?, description=?, image_path=?, status=? WHERE id=?'
+                    'UPDATE products SET name=?, brand=?, model=?, condition_text=?, description=?, image_path=?, status=? WHERE id=?'
                 );
                 $stmt->execute([
-                    $product['name'], $product['brand'], $product['model'], $priceValue,
+                    $product['name'], $product['brand'], $product['model'],
                     $product['condition_text'], $product['description'], $imagePath, $product['status'], $id,
                 ]);
             } else {
                 $stmt = getDb()->prepare(
-                    'INSERT INTO products (name, brand, model, price, condition_text, description, image_path, status)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+                    'INSERT INTO products (name, brand, model, condition_text, description, image_path, status)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)'
                 );
                 $stmt->execute([
-                    $product['name'], $product['brand'], $product['model'], $priceValue,
+                    $product['name'], $product['brand'], $product['model'],
                     $product['condition_text'], $product['description'], $imagePath, $product['status'],
                 ]);
             }
@@ -112,15 +107,9 @@ require __DIR__ . '/_layout_head.php';
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-      <div class="form-field">
-        <label for="price">ราคา (บาท) — เว้นว่างถ้าให้ติดต่อสอบถามราคา</label>
-        <input type="number" step="0.01" min="0" id="price" name="price" value="<?= h((string) $product['price']) ?>">
-      </div>
-      <div class="form-field">
-        <label for="condition_text">สภาพเครื่อง</label>
-        <input type="text" id="condition_text" name="condition_text" placeholder="เช่น สภาพดี 90%" value="<?= h($product['condition_text']) ?>">
-      </div>
+    <div class="form-field">
+      <label for="condition_text">สภาพเครื่อง</label>
+      <input type="text" id="condition_text" name="condition_text" placeholder="เช่น สภาพดี 90%" value="<?= h($product['condition_text']) ?>">
     </div>
 
     <div class="form-field">

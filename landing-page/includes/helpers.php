@@ -5,13 +5,6 @@ function h(?string $value): string {
     return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
 }
 
-function formatPrice(?string $price): string {
-    if ($price === null || $price === '') {
-        return 'สอบถามราคา';
-    }
-    return number_format((float) $price, 0) . ' บาท';
-}
-
 function statusLabel(string $status): string {
     return match ($status) {
         'available' => 'พร้อมขาย',

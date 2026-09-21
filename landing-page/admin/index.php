@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/helpers.php';
 
 requireLogin();
 
-$stmt = getDb()->query('SELECT id, name, brand, price, status, image_path FROM products ORDER BY created_at DESC');
+$stmt = getDb()->query('SELECT id, name, brand, status, image_path FROM products ORDER BY created_at DESC');
 $products = $stmt->fetchAll();
 
 $pageTitle = 'จัดการสินค้า';
@@ -41,7 +41,6 @@ require __DIR__ . '/_layout_head.php';
         <tr>
           <th></th>
           <th>ชื่อสินค้า</th>
-          <th>ราคา</th>
           <th>สถานะ</th>
           <th></th>
         </tr>
@@ -56,7 +55,6 @@ require __DIR__ . '/_layout_head.php';
               <?= h($p['name']) ?><br>
               <span style="color:var(--text-light);font-size:12.5px;"><?= h($p['brand'] ?? '') ?></span>
             </td>
-            <td><?= h(formatPrice($p['price'])) ?></td>
             <td><span class="badge badge-<?= h($p['status']) ?>"><?= h(statusLabel($p['status'])) ?></span></td>
             <td>
               <div class="row-actions">

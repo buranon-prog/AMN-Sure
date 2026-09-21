@@ -42,11 +42,10 @@ require __DIR__ . '/includes/site-header.php';
         <span style="display:inline-block;font-size:12px;font-weight:600;color:#a33;background:#fdf0f0;padding:4px 12px;border-radius:999px;margin-bottom:12px;">ขายแล้ว</span>
       <?php endif; ?>
       <h1 style="margin-top:0;"><?= h($product['name']) ?></h1>
-      <p style="font-size:14px;margin-bottom:18px;">
+      <p style="font-size:15px;margin-bottom:24px;">
         <?= h(trim(($product['brand'] ?? '') . ' ' . ($product['model'] ?? ''))) ?>
         <?php if ($product['condition_text']): ?> · สภาพ: <?= h($product['condition_text']) ?><?php endif; ?>
       </p>
-      <p style="font-size:26px;font-weight:600;color:var(--green-dark);margin-bottom:24px;"><?= h(formatPrice($product['price'])) ?></p>
 
       <?php if ($product['description']): ?>
         <p style="white-space:pre-line;margin-bottom:30px;"><?= h($product['description']) ?></p>
