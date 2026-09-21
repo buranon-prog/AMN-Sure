@@ -22,7 +22,10 @@ require __DIR__ . '/includes/site-header.php';
   <p style="max-width:620px;margin-bottom:40px;">รายการเครื่องมือแพทย์มือสองที่ผ่านการตรวจสอบคุณภาพและมาตรฐานจากทีมงาน AMN SURE สนใจรายการไหนติดต่อสอบถามได้ทันที</p>
 
   <?php if (empty($products)): ?>
-    <p style="padding:40px 0;">ยังไม่มีรายการสินค้าในขณะนี้ กรุณากลับมาดูใหม่อีกครั้ง</p>
+    <div style="text-align:center;padding:70px 20px;background:var(--green-mist);border-radius:20px;">
+      <p style="font-size:18px;font-weight:600;color:var(--green-dark);margin-bottom:8px;">ไม่มีสินค้า</p>
+      <p style="font-size:14px;">ขณะนี้ยังไม่มีรายการเครื่องมือแพทย์มือสอง กรุณากลับมาดูใหม่อีกครั้ง</p>
+    </div>
   <?php else: ?>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:28px;">
       <?php foreach ($products as $p): ?>
