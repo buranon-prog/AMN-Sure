@@ -7,6 +7,13 @@ $stmt = getDb()->prepare("SELECT * FROM products WHERE id = ? AND status != 'hid
 $stmt->execute([$id]);
 $product = $stmt->fetch();
 
+$images = [];
+if ($product) {
+    $imgStmt = getDb()->prepare('SELECT image_path FROM product_images WHERE product_id = ? ORDER BY sort_order, id');
+    $imgStmt->execute([$id]);
+    $images = $imgStmt->fetchAll();
+}
+
 if (!$product) {
     http_response_code(404);
     $pageTitle = 'ไม่พบสินค้า | AMN SURE';
@@ -29,11 +36,30 @@ require __DIR__ . '/includes/site-header.php';
   <a href="used-equipment.php" style="font-size:14px;color:var(--green);display:inline-block;margin-bottom:24px;">&larr; กลับไปหน้ารายการสินค้า</a>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:start;">
-    <div style="aspect-ratio:4/3;background:var(--green-mist);border-radius:20px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
-      <?php if ($product['image_path']): ?>
-        <img src="<?= h($product['image_path']) ?>" alt="<?= h($product['name']) ?>" style="width:100%;height:100%;object-fit:cover;">
-      <?php else: ?>
-        <img src="logo.png" alt="" style="width:35%;opacity:.5;">
+    <div>
+      <div id="mainImageBox" style="aspect-ratio:4/3;background:var(--green-mist);border-radius:20px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+        <?php if ($images): ?>
+          <img id="mainImage" src="<?= h($images[0]['image_path']) ?>" alt="<?= h($product['name']) ?>" style="width:100%;height:100%;object-fit:cover;">
+        <?php else: ?>
+          <img src="logo.png" alt="" style="width:35%;opacity:.5;">
+        <?php endif; ?>
+      </div>
+      <?php if (count($images) > 1): ?>
+        <div id="thumbRow" style="display:flex;gap:10px;flex-wrap:wrap;">
+          <?php foreach ($images as $i => $img): ?>
+            <img src="<?= h($img['image_path']) ?>" alt="" class="thumb-item" onclick="selectImage(this)"
+                 style="width:70px;height:70px;object-fit:cover;border-radius:10px;cursor:pointer;border:2px solid <?= $i === 0 ? 'var(--green)' : 'transparent' ?>;">
+          <?php endforeach; ?>
+        </div>
+        <script>
+          function selectImage(el) {
+            document.getElementById('mainImage').src = el.src;
+            document.querySelectorAll('#thumbRow .thumb-item').forEach(function (t) {
+              t.style.borderColor = 'transparent';
+            });
+            el.style.borderColor = 'var(--green)';
+          }
+        </script>
       <?php endif; ?>
     </div>
 

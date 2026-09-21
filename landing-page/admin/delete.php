@@ -13,14 +13,14 @@ checkCsrf();
 
 $id = (int) ($_POST['id'] ?? 0);
 if ($id) {
-    $stmt = getDb()->prepare('SELECT image_path FROM products WHERE id = ?');
+    $stmt = getDb()->prepare('SELECT image_path FROM product_images WHERE product_id = ?');
     $stmt->execute([$id]);
-    $row = $stmt->fetch();
+    $images = $stmt->fetchAll();
 
     $del = getDb()->prepare('DELETE FROM products WHERE id = ?');
-    $del->execute([$id]);
+    $del->execute([$id]); // product_images rows are removed via ON DELETE CASCADE
 
-    if ($row && !empty($row['image_path'])) {
+    foreach ($images as $row) {
         $filePath = __DIR__ . '/../' . $row['image_path'];
         if (is_file($filePath)) {
             unlink($filePath);

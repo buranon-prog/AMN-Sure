@@ -3,10 +3,11 @@ require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/helpers.php';
 
 $stmt = getDb()->query(
-    "SELECT id, name, brand, model, condition_text, image_path, status
-     FROM products
-     WHERE status != 'hidden'
-     ORDER BY created_at DESC"
+    "SELECT p.id, p.name, p.brand, p.model, p.condition_text, p.status,
+            (SELECT pi.image_path FROM product_images pi WHERE pi.product_id = p.id ORDER BY pi.sort_order, pi.id LIMIT 1) AS cover_image
+     FROM products p
+     WHERE p.status != 'hidden'
+     ORDER BY p.created_at DESC"
 );
 $products = $stmt->fetchAll();
 
@@ -27,8 +28,8 @@ require __DIR__ . '/includes/site-header.php';
       <?php foreach ($products as $p): ?>
         <a href="product.php?id=<?= (int) $p['id'] ?>" style="display:block;border:1px solid rgba(23,59,46,.1);border-radius:20px;overflow:hidden;background:var(--white);transition:.3s ease;">
           <div style="aspect-ratio:4/3;background:var(--green-mist);display:flex;align-items:center;justify-content:center;overflow:hidden;">
-            <?php if ($p['image_path']): ?>
-              <img src="<?= h($p['image_path']) ?>" alt="<?= h($p['name']) ?>" style="width:100%;height:100%;object-fit:cover;">
+            <?php if ($p['cover_image']): ?>
+              <img src="<?= h($p['cover_image']) ?>" alt="<?= h($p['name']) ?>" style="width:100%;height:100%;object-fit:cover;">
             <?php else: ?>
               <img src="logo.png" alt="" style="width:40%;opacity:.5;">
             <?php endif; ?>

@@ -5,7 +5,12 @@ require_once __DIR__ . '/../includes/helpers.php';
 
 requireLogin();
 
-$stmt = getDb()->query('SELECT id, name, brand, status, image_path FROM products ORDER BY created_at DESC');
+$stmt = getDb()->query(
+    'SELECT p.id, p.name, p.brand, p.status,
+            (SELECT pi.image_path FROM product_images pi WHERE pi.product_id = p.id ORDER BY pi.sort_order, pi.id LIMIT 1) AS cover_image
+     FROM products p
+     ORDER BY p.created_at DESC'
+);
 $products = $stmt->fetchAll();
 
 $pageTitle = 'จัดการสินค้า';
@@ -49,7 +54,7 @@ require __DIR__ . '/_layout_head.php';
         <?php foreach ($products as $p): ?>
           <tr>
             <td>
-              <img class="thumb" src="<?= h($p['image_path'] ?: '../logo.png') ?>" alt="">
+              <img class="thumb" src="<?= h($p['cover_image'] ?: '../logo.png') ?>" alt="">
             </td>
             <td>
               <?= h($p['name']) ?><br>

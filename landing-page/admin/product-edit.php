@@ -8,8 +8,9 @@ requireLogin();
 $id = isset($_GET['id']) ? (int) $_GET['id'] : (isset($_POST['id']) ? (int) $_POST['id'] : 0);
 $product = [
     'id' => 0, 'name' => '', 'brand' => '', 'model' => '',
-    'condition_text' => '', 'description' => '', 'image_path' => null, 'status' => 'available',
+    'condition_text' => '', 'description' => '', 'status' => 'available',
 ];
+$images = [];
 $error = '';
 
 if ($id) {
@@ -18,6 +19,9 @@ if ($id) {
     $found = $stmt->fetch();
     if ($found) {
         $product = $found;
+        $imgStmt = getDb()->prepare('SELECT id, image_path FROM product_images WHERE product_id = ? ORDER BY sort_order, id');
+        $imgStmt->execute([$id]);
+        $images = $imgStmt->fetchAll();
     } else {
         $id = 0;
     }
@@ -40,29 +44,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($error === '') {
         try {
-            $imagePath = $product['image_path'];
-            $uploaded = handleImageUpload('image');
-            if ($uploaded) {
-                $imagePath = $uploaded;
-            }
+            $newImagePaths = handleMultipleImageUploads('images');
+
+            $db = getDb();
 
             if ($id) {
-                $stmt = getDb()->prepare(
-                    'UPDATE products SET name=?, brand=?, model=?, condition_text=?, description=?, image_path=?, status=? WHERE id=?'
+                $stmt = $db->prepare(
+                    'UPDATE products SET name=?, brand=?, model=?, condition_text=?, description=?, status=? WHERE id=?'
                 );
                 $stmt->execute([
                     $product['name'], $product['brand'], $product['model'],
-                    $product['condition_text'], $product['description'], $imagePath, $product['status'], $id,
+                    $product['condition_text'], $product['description'], $product['status'], $id,
                 ]);
             } else {
-                $stmt = getDb()->prepare(
-                    'INSERT INTO products (name, brand, model, condition_text, description, image_path, status)
-                     VALUES (?, ?, ?, ?, ?, ?, ?)'
+                $stmt = $db->prepare(
+                    'INSERT INTO products (name, brand, model, condition_text, description, status)
+                     VALUES (?, ?, ?, ?, ?, ?)'
                 );
                 $stmt->execute([
                     $product['name'], $product['brand'], $product['model'],
-                    $product['condition_text'], $product['description'], $imagePath, $product['status'],
+                    $product['condition_text'], $product['description'], $product['status'],
                 ]);
+                $id = (int) $db->lastInsertId();
+            }
+
+            // ลบรูปที่ผู้ใช้เลือกลบ (เฉพาะรูปที่เป็นของสินค้านี้จริง ๆ)
+            $removeIds = array_map('intval', $_POST['remove_images'] ?? []);
+            if ($removeIds) {
+                $placeholders = implode(',', array_fill(0, count($removeIds), '?'));
+                $sel = $db->prepare("SELECT id, image_path FROM product_images WHERE product_id = ? AND id IN ($placeholders)");
+                $sel->execute([$id, ...$removeIds]);
+                $toDelete = $sel->fetchAll();
+
+                $del = $db->prepare('DELETE FROM product_images WHERE id = ?');
+                foreach ($toDelete as $row) {
+                    $del->execute([$row['id']]);
+                    $filePath = __DIR__ . '/../' . $row['image_path'];
+                    if (is_file($filePath)) {
+                        unlink($filePath);
+                    }
+                }
+            }
+
+            // เพิ่มรูปใหม่ที่อัปโหลดเข้ามา
+            if ($newImagePaths) {
+                $maxOrderStmt = $db->prepare('SELECT COALESCE(MAX(sort_order), -1) FROM product_images WHERE product_id = ?');
+                $maxOrderStmt->execute([$id]);
+                $maxOrder = (int) $maxOrderStmt->fetchColumn();
+                $ins = $db->prepare('INSERT INTO product_images (product_id, image_path, sort_order) VALUES (?, ?, ?)');
+                foreach ($newImagePaths as $path) {
+                    $maxOrder++;
+                    $ins->execute([$id, $path, $maxOrder]);
+                }
             }
 
             header('Location: index.php?saved=1');
@@ -126,12 +159,23 @@ require __DIR__ . '/_layout_head.php';
       </select>
     </div>
 
+    <?php if ($images): ?>
+      <div class="form-field">
+        <label>รูปที่มีอยู่ — ติ๊กเพื่อลบ</label>
+        <div style="display:flex;flex-wrap:wrap;gap:14px;">
+          <?php foreach ($images as $img): ?>
+            <label style="text-align:center;font-size:12px;cursor:pointer;">
+              <img src="../<?= h($img['image_path']) ?>" alt="" style="width:96px;height:96px;object-fit:cover;border-radius:10px;display:block;margin-bottom:6px;">
+              <input type="checkbox" name="remove_images[]" value="<?= (int) $img['id'] ?>"> ลบรูปนี้
+            </label>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    <?php endif; ?>
+
     <div class="form-field">
-      <label for="image">รูปสินค้า (JPG/PNG/WEBP ไม่เกิน 5MB)</label>
-      <?php if ($product['image_path']): ?>
-        <img src="../<?= h($product['image_path']) ?>" alt="" style="width:120px;height:120px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:block;">
-      <?php endif; ?>
-      <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp">
+      <label for="images">เพิ่มรูปสินค้า (เลือกได้หลายรูป — JPG/PNG/WEBP ไม่เกิน 5MB ต่อรูป)</label>
+      <input type="file" id="images" name="images[]" accept="image/jpeg,image/png,image/webp" multiple>
     </div>
 
     <button type="submit" class="btn btn-primary">บันทึกข้อมูล</button>
