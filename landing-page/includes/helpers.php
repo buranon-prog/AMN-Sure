@@ -6,12 +6,12 @@ function h(?string $value): string {
 }
 
 function statusLabel(string $status): string {
-    return match ($status) {
+    $labels = [
         'available' => 'พร้อมขาย',
         'sold' => 'ขายแล้ว',
         'hidden' => 'ซ่อนอยู่',
-        default => $status,
-    };
+    ];
+    return $labels[$status] ?? $status;
 }
 
 /**

@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($removeIds) {
                 $placeholders = implode(',', array_fill(0, count($removeIds), '?'));
                 $sel = $db->prepare("SELECT id, image_path FROM product_images WHERE product_id = ? AND id IN ($placeholders)");
-                $sel->execute([$id, ...$removeIds]);
+                $sel->execute(array_merge([$id], $removeIds));
                 $toDelete = $sel->fetchAll();
 
                 $del = $db->prepare('DELETE FROM product_images WHERE id = ?');
