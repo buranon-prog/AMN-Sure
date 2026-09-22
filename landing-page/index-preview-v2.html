@@ -8,7 +8,7 @@
 <meta name="description" content="AMN Sure ผู้เชี่ยวชาญด้านการซื้อ-ขายและรับฝากขายเครื่องมือแพทย์มือสองคุณภาพ ตรวจสอบมาตรฐาน เชื่อถือได้">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
 <style>
   :root{
     --green-dark:#173B2E;
@@ -25,7 +25,7 @@
   *{box-sizing:border-box;margin:0;padding:0;}
   html{scroll-behavior:smooth;}
   body{
-    font-family:'Prompt', sans-serif;
+    font-family:'IBM Plex Sans Thai', sans-serif;
     color:var(--text);
     background:var(--white);
     line-height:1.75;
@@ -175,7 +175,7 @@
   .lang-btn{
     border:none;
     background:transparent;
-    font-family:'Prompt', sans-serif;
+    font-family:'IBM Plex Sans Thai', sans-serif;
     font-size:12px;
     font-weight:500;
     letter-spacing:.03em;
@@ -302,6 +302,7 @@
     position:relative;
     overflow:hidden;
     transition:transform .6s var(--ease);
+    max-width:100%;
   }
   .about-visual:hover{transform:translateY(-6px);}
   .about-visual::before{
@@ -507,8 +508,6 @@
     .hero-mark{opacity:.35;width:80%;right:-10%;}
     section{padding:100px 0;}
     .band,.cta{padding:100px 0;}
-  }
-  @media(max-width:720px){
     nav{
       position:fixed;
       inset:64px 0 0 0;
@@ -522,6 +521,8 @@
     nav a{color:var(--text);}
     #nav-toggle:checked ~ nav{transform:translateX(0);}
     .burger{display:flex;}
+  }
+  @media(max-width:720px){
     .service-grid{grid-template-columns:1fr;}
     .hero{padding:120px 0 80px;min-height:auto;}
     .cta-box{padding:56px 26px;}
