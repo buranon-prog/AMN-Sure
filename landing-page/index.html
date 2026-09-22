@@ -4,7 +4,7 @@
 <script>document.documentElement.classList.add('js');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AMN SURE | เครื่องมือแพทย์คุณภาพ ซื้อ-ขาย-ฝากขาย</title>
+<title data-th="AMN SURE | เครื่องมือแพทย์คุณภาพ ซื้อ-ขาย-ฝากขาย" data-en="AMN SURE | Quality Medical Equipment Trading &amp; Consignment">AMN SURE | เครื่องมือแพทย์คุณภาพ ซื้อ-ขาย-ฝากขาย</title>
 <meta name="description" content="AMN Sure ผู้เชี่ยวชาญด้านการซื้อ-ขายและรับฝากขายเครื่องมือแพทย์มือสองคุณภาพ ตรวจสอบมาตรฐาน เชื่อถือได้">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -142,6 +142,31 @@
   .social-icon::after{display:none;}
   .social-icon:hover{background:var(--green-mist);border-color:var(--green-soft);}
   .social-icon svg{width:16px;height:16px;}
+  .lang-switch{
+    display:flex;
+    align-items:center;
+    border:1px solid rgba(23,59,46,.15);
+    border-radius:999px;
+    padding:3px;
+    gap:2px;
+  }
+  .lang-btn{
+    border:none;
+    background:transparent;
+    font-family:'Prompt', sans-serif;
+    font-size:12.5px;
+    font-weight:500;
+    letter-spacing:.03em;
+    color:var(--text-light);
+    padding:5px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:.25s ease;
+  }
+  .lang-btn.active{
+    background:linear-gradient(120deg,var(--green-dark),var(--green));
+    color:var(--white);
+  }
   #nav-toggle{display:none;}
   .burger{display:none;cursor:pointer;flex-direction:column;gap:5px;}
   .burger span{width:26px;height:2px;background:var(--green-dark);display:block;}
@@ -486,11 +511,11 @@
     <input type="checkbox" id="nav-toggle">
     <nav>
       <ul>
-        <li><a href="#top">หน้าแรก</a></li>
-        <li><a href="#about">เกี่ยวกับเรา</a></li>
-        <li><a href="#services">บริการของเรา</a></li>
-        <li><a href="#why">ทำไมต้องเรา</a></li>
-        <li><a href="used-equipment.php">เครื่องมือแพทย์มือสอง</a></li>
+        <li><a href="#top" data-th="หน้าแรก" data-en="Home">หน้าแรก</a></li>
+        <li><a href="#about" data-th="เกี่ยวกับเรา" data-en="About Us">เกี่ยวกับเรา</a></li>
+        <li><a href="#services" data-th="บริการของเรา" data-en="Services">บริการของเรา</a></li>
+        <li><a href="#why" data-th="ทำไมต้องเรา" data-en="Why Us">ทำไมต้องเรา</a></li>
+        <li><a href="used-equipment.php" data-th="เครื่องมือแพทย์มือสอง" data-en="Used Equipment">เครื่องมือแพทย์มือสอง</a></li>
         <li class="social-links">
           <a href="https://www.facebook.com/share/1CLDYWqSBv/?mibextid=wwXIfr" class="social-icon" aria-label="Facebook" target="_blank" rel="noopener">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
@@ -499,7 +524,11 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
           </a>
         </li>
-        <li><a href="#contact"><span class="btn btn-primary" style="padding:10px 22px;">ติดต่อเรา</span></a></li>
+        <li class="lang-switch" role="group" aria-label="Language">
+          <button type="button" class="lang-btn active" data-lang="th">TH</button>
+          <button type="button" class="lang-btn" data-lang="en">EN</button>
+        </li>
+        <li><a href="#contact"><span class="btn btn-primary" style="padding:10px 22px;" data-th="ติดต่อเรา" data-en="Contact Us">ติดต่อเรา</span></a></li>
       </ul>
     </nav>
     <label for="nav-toggle" class="burger"><span></span><span></span><span></span></label>
@@ -510,10 +539,10 @@
   <img class="hero-bg-icon" src="logo.png" alt="">
   <div class="container hero-inner">
     <span class="eyebrow">Medical Equipment Specialist</span>
-    <h1>เครื่องมือแพทย์คุณภาพ<br>ที่คุณ<em>วางใจได้</em></h1>
-    <p class="lead">AMN SURE คือผู้เชี่ยวชาญด้านการประเมิน ซื้อ-ขาย และรับฝากขายเครื่องมือแพทย์มือสองจาก AMN ซึ่งผ่านการตรวจสอบมาตรฐานอย่างเข้มงวด เพื่อส่งมอบความมั่นใจให้กับสถานพยาบาลทุกขนาด</p>
+    <h1 data-i18n-html data-th="เครื่องมือแพทย์คุณภาพ&lt;br&gt;ที่คุณ&lt;em&gt;วางใจได้&lt;/em&gt;" data-en="Quality Medical Equipment&lt;br&gt;You Can &lt;em&gt;Trust&lt;/em&gt;">เครื่องมือแพทย์คุณภาพ<br>ที่คุณ<em>วางใจได้</em></h1>
+    <p class="lead" data-th="AMN SURE คือผู้เชี่ยวชาญด้านการประเมิน ซื้อ-ขาย และรับฝากขายเครื่องมือแพทย์มือสองจาก AMN ซึ่งผ่านการตรวจสอบมาตรฐานอย่างเข้มงวด เพื่อส่งมอบความมั่นใจให้กับสถานพยาบาลทุกขนาด" data-en="AMN SURE specializes in appraising, buying, selling, and consigning quality used medical equipment, rigorously inspected to bring confidence to healthcare facilities of every size.">AMN SURE คือผู้เชี่ยวชาญด้านการประเมิน ซื้อ-ขาย และรับฝากขายเครื่องมือแพทย์มือสองจาก AMN ซึ่งผ่านการตรวจสอบมาตรฐานอย่างเข้มงวด เพื่อส่งมอบความมั่นใจให้กับสถานพยาบาลทุกขนาด</p>
     <div class="hero-actions">
-      <a href="#contact" class="btn btn-primary">ติดต่อสอบถาม</a>
+      <a href="#contact" class="btn btn-primary" data-th="ติดต่อสอบถาม" data-en="Get in Touch">ติดต่อสอบถาม</a>
     </div>
   </div>
 </section>
@@ -525,12 +554,12 @@
     </div>
     <div class="reveal">
       <span class="eyebrow">About AMN Sure</span>
-      <h2>มาตรฐานที่เชื่อถือได้<br>ในทุกการซื้อขาย</h2>
-      <p>เราให้บริการด้านเครื่องมือแพทย์มือสองแบบครบวงจร ตั้งแต่การรับซื้อ ตรวจสอบสภาพและคุณภาพ ซ่อมบำรุง ไปจนถึงการจัดจำหน่ายให้กับสถานพยาบาลทั่วประเทศ ด้วยทีมงานผู้เชี่ยวชาญเฉพาะทางและกระบวนการตรวจสอบที่เข้มงวด</p>
+      <h2 data-i18n-html data-th="มาตรฐานที่เชื่อถือได้&lt;br&gt;ในทุกการซื้อขาย" data-en="Trusted Standards&lt;br&gt;In Every Transaction">มาตรฐานที่เชื่อถือได้<br>ในทุกการซื้อขาย</h2>
+      <p data-th="เราให้บริการด้านเครื่องมือแพทย์มือสองแบบครบวงจร ตั้งแต่การรับซื้อ ตรวจสอบสภาพและคุณภาพ ซ่อมบำรุง ไปจนถึงการจัดจำหน่ายให้กับสถานพยาบาลทั่วประเทศ ด้วยทีมงานผู้เชี่ยวชาญเฉพาะทางและกระบวนการตรวจสอบที่เข้มงวด" data-en="We offer end-to-end used medical equipment services — from purchasing, condition and quality inspection, and maintenance, to distribution for healthcare facilities nationwide, backed by specialist teams and a rigorous inspection process.">เราให้บริการด้านเครื่องมือแพทย์มือสองแบบครบวงจร ตั้งแต่การรับซื้อ ตรวจสอบสภาพและคุณภาพ ซ่อมบำรุง ไปจนถึงการจัดจำหน่ายให้กับสถานพยาบาลทั่วประเทศ ด้วยทีมงานผู้เชี่ยวชาญเฉพาะทางและกระบวนการตรวจสอบที่เข้มงวด</p>
       <ul class="about-points">
-        <li><span class="dot"></span>ตรวจสอบคุณภาพและความปลอดภัยทุกชิ้นก่อนส่งมอบ</li>
-        <li><span class="dot"></span>บริการรับฝากขายพร้อมระบบที่โปร่งใส ตรวจสอบได้</li>
-        <li><span class="dot"></span>ทีมงานผู้เชี่ยวชาญให้คำปรึกษาตลอดกระบวนการ</li>
+        <li><span class="dot"></span><span data-th="ตรวจสอบคุณภาพและความปลอดภัยทุกชิ้นก่อนส่งมอบ" data-en="Every item is quality- and safety-checked before delivery">ตรวจสอบคุณภาพและความปลอดภัยทุกชิ้นก่อนส่งมอบ</span></li>
+        <li><span class="dot"></span><span data-th="บริการรับฝากขายพร้อมระบบที่โปร่งใส ตรวจสอบได้" data-en="Consignment service with a transparent, verifiable process">บริการรับฝากขายพร้อมระบบที่โปร่งใส ตรวจสอบได้</span></li>
+        <li><span class="dot"></span><span data-th="ทีมงานผู้เชี่ยวชาญให้คำปรึกษาตลอดกระบวนการ" data-en="Specialist team advising you throughout the process">ทีมงานผู้เชี่ยวชาญให้คำปรึกษาตลอดกระบวนการ</span></li>
       </ul>
     </div>
   </div>
@@ -540,32 +569,32 @@
   <div class="container">
     <div class="section-head center reveal">
       <span class="eyebrow" style="margin:0 auto;justify-content:center;">Our Services</span>
-      <h2>บริการของเรา</h2>
+      <h2 data-th="บริการของเรา" data-en="Our Services">บริการของเรา</h2>
     </div>
     <div class="service-grid reveal-group">
       <div class="service-card reveal" style="--i:0;">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
         </div>
-        <h3>ซื้อ-ขายเครื่องมือแพทย์</h3>
+        <h3 data-th="ซื้อ-ขายเครื่องมือแพทย์" data-en="Medical Equipment Trading">ซื้อ-ขายเครื่องมือแพทย์</h3>
       </div>
       <div class="service-card reveal" style="--i:1;">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4 8l8-5 8 5M6 21h12"/></svg>
         </div>
-        <h3>รับฝากขาย (Consignment)</h3>
+        <h3 data-th="รับฝากขาย (Consignment)" data-en="Consignment Service">รับฝากขาย (Consignment)</h3>
       </div>
       <div class="service-card reveal" style="--i:2;">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/></svg>
         </div>
-        <h3>ตรวจสอบและรับรองคุณภาพ</h3>
+        <h3 data-th="ตรวจสอบและรับรองคุณภาพ" data-en="Quality Inspection &amp; Certification">ตรวจสอบและรับรองคุณภาพ</h3>
       </div>
       <div class="service-card reveal" style="--i:3;">
         <div class="service-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.6c0 5.4-8.8 10-8.8 10s-8.8-4.6-8.8-10a4.9 4.9 0 018.8-3 4.9 4.9 0 018.8 3z"/></svg>
         </div>
-        <h3>บริการหลังการขาย</h3>
+        <h3 data-th="บริการหลังการขาย" data-en="After-Sales Service">บริการหลังการขาย</h3>
       </div>
     </div>
   </div>
@@ -575,28 +604,28 @@
   <div class="container">
     <div class="section-head center reveal">
       <span class="eyebrow" style="margin:0 auto;justify-content:center;">Why Choose Us</span>
-      <h2>ทำไมต้อง SURE</h2>
+      <h2 data-th="ทำไมต้อง SURE" data-en="Why Choose SURE">ทำไมต้อง SURE</h2>
     </div>
     <div class="why-grid reveal-group">
       <div class="why-item reveal" style="--i:0;">
         <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 1-4.5 4.4L17.5 20 12 17l-5.5 3 1-6.6L3 9l6-1 3-6z"/></svg></div>
-        <h3>มาตรฐาน</h3>
-        <p>ตรวจสอบคุณภาพทุกชิ้นตามมาตรฐานสากล</p>
+        <h3 data-th="มาตรฐาน" data-en="Standards">มาตรฐาน</h3>
+        <p data-th="ตรวจสอบคุณภาพทุกชิ้นตามมาตรฐานสากล" data-en="Every item inspected to international standards">ตรวจสอบคุณภาพทุกชิ้นตามมาตรฐานสากล</p>
       </div>
       <div class="why-item reveal" style="--i:1;">
         <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c4.97-4 8-7.58 8-11a8 8 0 10-16 0c0 3.42 3.03 7 8 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
-        <h3>ราคายุติธรรม</h3>
-        <p>ประเมินราคาโปร่งใส คุ้มค่าทุกการลงทุน</p>
+        <h3 data-th="ราคายุติธรรม" data-en="Fair Pricing">ราคายุติธรรม</h3>
+        <p data-th="ประเมินราคาโปร่งใส คุ้มค่าทุกการลงทุน" data-en="Transparent valuation, real value for every investment">ประเมินราคาโปร่งใส คุ้มค่าทุกการลงทุน</p>
       </div>
       <div class="why-item reveal" style="--i:2;">
         <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
-        <h3>บริการรวดเร็ว</h3>
-        <p>ทีมงานดูแลและตอบกลับอย่างรวดเร็วทันใจ</p>
+        <h3 data-th="บริการรวดเร็ว" data-en="Fast Service">บริการรวดเร็ว</h3>
+        <p data-th="ทีมงานดูแลและตอบกลับอย่างรวดเร็วทันใจ" data-en="Our team responds and follows through quickly">ทีมงานดูแลและตอบกลับอย่างรวดเร็วทันใจ</p>
       </div>
       <div class="why-item reveal" style="--i:3;">
         <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/></svg></div>
-        <h3>ซื่อสัตย์โปร่งใส</h3>
-        <p>ดำเนินธุรกิจด้วยความจริงใจตรวจสอบได้</p>
+        <h3 data-th="ซื่อสัตย์โปร่งใส" data-en="Honest &amp; Transparent">ซื่อสัตย์โปร่งใส</h3>
+        <p data-th="ดำเนินธุรกิจด้วยความจริงใจตรวจสอบได้" data-en="We do business with integrity you can verify">ดำเนินธุรกิจด้วยความจริงใจตรวจสอบได้</p>
       </div>
     </div>
   </div>
@@ -606,13 +635,13 @@
   <div class="container">
     <div class="cta-box reveal">
       <span class="eyebrow" style="margin:0 auto;justify-content:center;">Get In Touch</span>
-      <h2>พร้อมให้คำปรึกษา<br>ทุกความต้องการของคุณ</h2>
-      <p>ติดต่อทีมงาน AMN Sure เพื่อสอบถามข้อมูลเครื่องมือแพทย์ ซื้อ-ขาย หรือฝากขาย ได้ทุกช่องทาง</p>
+      <h2 data-i18n-html data-th="พร้อมให้คำปรึกษา&lt;br&gt;ทุกความต้องการของคุณ" data-en="Ready to Assist&lt;br&gt;With All Your Needs">พร้อมให้คำปรึกษา<br>ทุกความต้องการของคุณ</h2>
+      <p data-th="ติดต่อทีมงาน AMN Sure เพื่อสอบถามข้อมูลเครื่องมือแพทย์ ซื้อ-ขาย หรือฝากขาย ได้ทุกช่องทาง" data-en="Reach the AMN Sure team to ask about medical equipment, buying, selling, or consignment through any channel.">ติดต่อทีมงาน AMN Sure เพื่อสอบถามข้อมูลเครื่องมือแพทย์ ซื้อ-ขาย หรือฝากขาย ได้ทุกช่องทาง</p>
       <div class="cta-actions">
-        <a href="tel:0812354316" class="btn btn-primary">โทร 081-235-4316</a>
+        <a href="tel:0812354316" class="btn btn-primary" data-th="โทร 081-235-4316" data-en="Call 081-235-4316">โทร 081-235-4316</a>
         <label for="line-modal" class="btn btn-line">
           <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 5.66 2 10.15c0 4.02 3.58 7.39 8.42 8.03.33.07.77.22.88.5.1.26.07.66.03.92l-.14.87c-.04.26-.2 1 .88.55 1.08-.46 5.82-3.43 7.94-5.87C21.42 13.5 22 11.9 22 10.15 22 5.66 17.52 2 12 2z"/></svg>
-          ติดต่อผ่าน LINE
+          <span data-th="ติดต่อผ่าน LINE" data-en="Contact via LINE">ติดต่อผ่าน LINE</span>
         </label>
         <a href="mailto:sure@amnsure.co.th" class="btn btn-outline">sure@amnsure.co.th</a>
       </div>
@@ -627,24 +656,24 @@
         <a href="#top" class="logo light">
           <img src="logo.png" alt="AMN SURE">
         </a>
-        <p>ผู้เชี่ยวชาญด้านการซื้อ-ขายและรับฝากขายเครื่องมือแพทย์มือสองคุณภาพ เพื่อสถานพยาบาลที่ไว้วางใจได้</p>
+        <p data-th="ผู้เชี่ยวชาญด้านการซื้อ-ขายและรับฝากขายเครื่องมือแพทย์มือสองคุณภาพ เพื่อสถานพยาบาลที่ไว้วางใจได้" data-en="Specialists in buying, selling, and consigning quality used medical equipment, for healthcare facilities that trust us.">ผู้เชี่ยวชาญด้านการซื้อ-ขายและรับฝากขายเครื่องมือแพทย์มือสองคุณภาพ เพื่อสถานพยาบาลที่ไว้วางใจได้</p>
       </div>
       <div class="footer-col">
-        <h4>เมนู</h4>
+        <h4 data-th="เมนู" data-en="Menu">เมนู</h4>
         <ul>
-          <li><a href="#about">เกี่ยวกับเรา</a></li>
-          <li><a href="#services">บริการของเรา</a></li>
-          <li><a href="#why">ทำไมต้องเรา</a></li>
-          <li><a href="used-equipment.php">เครื่องมือแพทย์มือสอง</a></li>
-          <li><a href="#contact">ติดต่อเรา</a></li>
+          <li><a href="#about" data-th="เกี่ยวกับเรา" data-en="About Us">เกี่ยวกับเรา</a></li>
+          <li><a href="#services" data-th="บริการของเรา" data-en="Services">บริการของเรา</a></li>
+          <li><a href="#why" data-th="ทำไมต้องเรา" data-en="Why Us">ทำไมต้องเรา</a></li>
+          <li><a href="used-equipment.php" data-th="เครื่องมือแพทย์มือสอง" data-en="Used Equipment">เครื่องมือแพทย์มือสอง</a></li>
+          <li><a href="#contact" data-th="ติดต่อเรา" data-en="Contact Us">ติดต่อเรา</a></li>
         </ul>
       </div>
       <div class="footer-col">
-        <h4>ติดต่อเรา</h4>
+        <h4 data-th="ติดต่อเรา" data-en="Contact Us">ติดต่อเรา</h4>
         <ul>
           <li>
             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c4.97-4 8-7.58 8-11a8 8 0 10-16 0c0 3.42 3.03 7 8 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
-            <span>1168/19 อาคารลุมพินีทาวเวอร์ ชั้น 13 ถ.พระราม 4 แขวงทุ่งมหาเมฆ เขตสาทร กทม. 10120</span>
+            <span data-th="1168/19 อาคารลุมพินีทาวเวอร์ ชั้น 13 ถ.พระราม 4 แขวงทุ่งมหาเมฆ เขตสาทร กทม. 10120" data-en="1168/19 Lumpini Tower, 13th Floor, Rama IV Road, Thung Maha Mek, Sathon, Bangkok 10120">1168/19 อาคารลุมพินีทาวเวอร์ ชั้น 13 ถ.พระราม 4 แขวงทุ่งมหาเมฆ เขตสาทร กทม. 10120</span>
           </li>
           <li>
             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.5 2.1L8 9.7a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.5c.9.3 1.8.5 2.7.6a2 2 0 011.7 2.1z"/></svg>
@@ -659,7 +688,7 @@
     </div>
     <div class="footer-bottom">
       <span>© 2026 AMN SURE. All rights reserved.</span>
-      <span>ออกแบบด้วยความใส่ใจ เพื่อความเชื่อมั่นของคุณ</span>
+      <span data-th="ออกแบบด้วยความใส่ใจ เพื่อความเชื่อมั่นของคุณ" data-en="Crafted with care, built on trust">ออกแบบด้วยความใส่ใจ เพื่อความเชื่อมั่นของคุณ</span>
     </div>
   </div>
 </footer>
@@ -669,8 +698,8 @@
   <label for="line-modal" class="modal-backdrop"></label>
   <div class="modal-box">
     <label for="line-modal" class="modal-close">&times;</label>
-    <h3>เพิ่มเพื่อน LINE</h3>
-    <p>สแกน QR Code เพื่อติดต่อ AMN Sure ผ่าน LINE</p>
+    <h3 data-th="เพิ่มเพื่อน LINE" data-en="Add us on LINE">เพิ่มเพื่อน LINE</h3>
+    <p data-th="สแกน QR Code เพื่อติดต่อ AMN Sure ผ่าน LINE" data-en="Scan the QR code to contact AMN Sure via LINE">สแกน QR Code เพื่อติดต่อ AMN Sure ผ่าน LINE</p>
     <img src="line-qr.png" alt="LINE QR Code" class="qr-code-img">
   </div>
 </div>
@@ -693,6 +722,39 @@
   } else {
     revealItems.forEach(function (item) { item.classList.add('in-view'); });
   }
+</script>
+
+<script>
+  function setLanguage(lang) {
+    lang = lang === 'en' ? 'en' : 'th';
+    document.documentElement.lang = lang;
+
+    document.querySelectorAll('[data-th]').forEach(function (el) {
+      var value = el.getAttribute('data-' + lang);
+      if (value === null) { return; }
+      if (el.hasAttribute('data-i18n-html')) {
+        el.innerHTML = value;
+      } else if (el.tagName === 'TITLE') {
+        document.title = value;
+      } else {
+        el.textContent = value;
+      }
+    });
+
+    document.querySelectorAll('.lang-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+    });
+
+    try { localStorage.setItem('amnsure-lang', lang); } catch (e) {}
+  }
+
+  document.querySelectorAll('.lang-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () { setLanguage(btn.getAttribute('data-lang')); });
+  });
+
+  var savedLang = 'th';
+  try { savedLang = localStorage.getItem('amnsure-lang') || 'th'; } catch (e) {}
+  if (savedLang === 'en') { setLanguage('en'); }
 </script>
 
 </body>
