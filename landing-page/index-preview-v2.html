@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<script>document.documentElement.classList.add('js');</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-th="AMN SURE | เครื่องมือแพทย์คุณภาพ ซื้อ-ขาย-ฝากขาย" data-en="AMN SURE | Quality Medical Equipment Trading &amp; Consignment">AMN SURE | เครื่องมือแพทย์คุณภาพ ซื้อ-ขาย-ฝากขาย</title>
+<meta name="description" content="AMN Sure ผู้เชี่ยวชาญด้านการซื้อ-ขายและรับฝากขายเครื่องมือแพทย์มือสองคุณภาพ ตรวจสอบมาตรฐาน เชื่อถือได้">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green-dark:#173B2E;
+    --green:#3F7A5C;
+    --green-mid:#6FA989;
+    --green-soft:#BFDCCA;
+    --green-mist:#EEF6F1;
+    --white:#FFFFFF;
+    --text:#33443C;
+    --text-light:#6B7C74;
+    --shadow: 0 20px 45px -25px rgba(23,59,46,0.35);
+    --ease: cubic-bezier(.16,.8,.24,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Prompt', sans-serif;
+    color:var(--text);
+    background:var(--white);
+    line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  a{text-decoration:none;color:inherit;}
+  ul{list-style:none;}
+  img,svg{display:block;max-width:100%;}
+  .container{
+    width:100%;
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 32px;
+  }
+  .eyebrow{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-weight:600;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--green);
+    font-size:15px;
+    display:inline-flex;
+    align-items:center;
+    gap:12px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:34px;
+    height:1px;
+    background:var(--green-mid);
+    display:inline-block;
+  }
+  h1,h2,h3{
+    font-weight:700;
+    color:var(--green-dark);
+    letter-spacing:-.02em;
+  }
+  h2{
+    font-size:clamp(30px,4vw,52px);
+    margin:16px 0 20px;
+    line-height:1.1;
+  }
+  p{color:var(--text-light);}
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:17px 36px;
+    border-radius:999px;
+    font-weight:500;
+    font-size:15px;
+    letter-spacing:.03em;
+    transition:.4s var(--ease);
+    border:1px solid transparent;
+  }
+  .btn:active{transform:scale(.96);}
+  .btn-primary{
+    background:linear-gradient(120deg,var(--green-dark),var(--green));
+    color:var(--white);
+    box-shadow:var(--shadow);
+  }
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 28px 46px -20px rgba(23,59,46,.55);}
+  .btn-outline{
+    border-color:var(--green-soft);
+    color:var(--green-dark);
+    background:var(--white);
+  }
+  .btn-outline:hover{background:var(--green-mist);transform:translateY(-3px);}
+
+  /* ---- logo ---- */
+  .logo{display:flex;align-items:center;gap:14px;min-height:52px;width:fit-content;}
+  .logo img{height:52px;width:auto;position:relative;z-index:1;transition:.4s var(--ease);}
+  /* ---- header ---- */
+  header{
+    position:sticky;
+    top:0;
+    z-index:100;
+    border-bottom:1px solid rgba(23,59,46,.06);
+    transition:border-color .5s var(--ease);
+  }
+  header::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:-1;
+    background:rgba(255,255,255,.6);
+    backdrop-filter:blur(20px) saturate(180%);
+    -webkit-backdrop-filter:blur(20px) saturate(180%);
+    transition:background .5s var(--ease), box-shadow .5s var(--ease);
+  }
+  header.scrolled{border-bottom-color:rgba(23,59,46,.1);}
+  header.scrolled::before{
+    background:rgba(255,255,255,.92);
+    box-shadow:0 12px 40px -28px rgba(23,59,46,.4);
+  }
+  header.scrolled .logo img{height:42px;}
+  .nav-wrap{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 32px;
+    max-width:1180px;
+    margin:0 auto;
+    transition:padding .4s var(--ease);
+  }
+  nav ul{display:flex;gap:22px;align-items:center;}
+  nav a{
+    font-size:14.5px;
+    font-weight:400;
+    color:var(--text);
+    position:relative;
+    padding:6px 0;
+    white-space:nowrap;
+  }
+  nav a::after{
+    content:"";
+    position:absolute;
+    left:0;bottom:0;
+    width:0;height:1px;
+    background:var(--green);
+    transition:.3s;
+  }
+  nav a:hover::after{width:100%;}
+  .social-links{display:flex;gap:8px;}
+  .social-icon{
+    width:32px;height:32px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    border:1px solid rgba(23,59,46,.15);
+    color:var(--green-dark);
+    transition:.3s ease;
+  }
+  .social-icon::after{display:none;}
+  .social-icon:hover{background:var(--green-mist);border-color:var(--green-soft);transform:translateY(-2px);}
+  .social-icon svg{width:16px;height:16px;}
+  .lang-switch{
+    display:flex;
+    align-items:center;
+    border:1px solid rgba(23,59,46,.15);
+    border-radius:999px;
+    padding:2px;
+    gap:1px;
+    flex:none;
+  }
+  .lang-btn{
+    border:none;
+    background:transparent;
+    font-family:'Prompt', sans-serif;
+    font-size:12px;
+    font-weight:500;
+    letter-spacing:.03em;
+    color:var(--text-light);
+    padding:4px 9px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:.25s ease;
+    white-space:nowrap;
+  }
+  .lang-btn.active{
+    background:linear-gradient(120deg,var(--green-dark),var(--green));
+    color:var(--white);
+  }
+  #nav-toggle{display:none;}
+  .burger{display:none;cursor:pointer;flex-direction:column;gap:5px;}
+  .burger span{width:26px;height:2px;background:var(--green-dark);display:block;}
+
+  /* ---- hero ---- */
+  .hero{
+    position:relative;
+    min-height:92vh;
+    display:flex;
+    align-items:center;
+    padding:150px 0 90px;
+    overflow:hidden;
+    background:var(--white);
+  }
+  .aurora{
+    position:absolute;
+    inset:-10%;
+    z-index:0;
+    pointer-events:none;
+  }
+  .aurora span{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(90px);
+    opacity:.45;
+  }
+  .aurora span:nth-child(1){width:520px;height:520px;top:-140px;right:-60px;background:radial-gradient(circle, var(--green-soft), transparent 70%);animation:float1 16s ease-in-out infinite;}
+  .aurora span:nth-child(2){width:420px;height:420px;bottom:-120px;left:-80px;background:radial-gradient(circle, var(--green-mid), transparent 70%);opacity:.3;animation:float2 20s ease-in-out infinite;}
+  .aurora span:nth-child(3){width:340px;height:340px;top:20%;left:38%;background:radial-gradient(circle, var(--green-mist), transparent 70%);opacity:.5;animation:float3 24s ease-in-out infinite;}
+  @keyframes float1{0%,100%{transform:translate(0,0);}50%{transform:translate(-40px,50px);}}
+  @keyframes float2{0%,100%{transform:translate(0,0);}50%{transform:translate(50px,-30px);}}
+  @keyframes float3{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-30px,-40px) scale(1.08);}}
+  .hero-mark{
+    position:absolute;
+    right:-6%;
+    top:50%;
+    transform:translateY(-50%);
+    width:56%;
+    max-width:760px;
+    opacity:.9;
+    z-index:0;
+    filter:drop-shadow(0 40px 80px rgba(23,59,46,.18));
+  }
+  .hero-inner{
+    position:relative;
+    z-index:1;
+    max-width:660px;
+  }
+  .hero h1{
+    font-size:clamp(42px,6.4vw,80px);
+    line-height:1.04;
+    letter-spacing:-.03em;
+    margin:22px 0 26px;
+  }
+  .hero h1 em{
+    font-style:normal;
+    background:linear-gradient(120deg,var(--green),var(--green-dark));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero p.lead{
+    font-size:18px;
+    max-width:520px;
+    margin-bottom:42px;
+  }
+  .hero-actions{display:flex;gap:18px;flex-wrap:wrap;align-items:center;}
+  .scroll-cue{
+    position:absolute;
+    bottom:40px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+    color:var(--text-light);
+    font-size:11px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    opacity:.7;
+  }
+  .scroll-cue .chevron{
+    width:14px;height:14px;
+    border-right:1.5px solid var(--green);
+    border-bottom:1.5px solid var(--green);
+    transform:rotate(45deg);
+    animation:bounce 2s ease-in-out infinite;
+  }
+  @keyframes bounce{0%,100%{transform:rotate(45deg) translate(0,0);}50%{transform:rotate(45deg) translate(4px,4px);}}
+
+  /* ---- section generic ---- */
+  section{padding:150px 0;}
+  .section-head{max-width:640px;margin-bottom:64px;}
+  .section-head.center{margin-left:auto;margin-right:auto;text-align:center;}
+
+  /* ---- about ---- */
+  .about-grid{
+    display:grid;
+    grid-template-columns:.85fr 1fr;
+    gap:90px;
+    align-items:center;
+  }
+  .about-visual{
+    background:linear-gradient(160deg,var(--green-mist), #fff);
+    border:1px solid var(--green-soft);
+    border-radius:32px;
+    padding:70px 40px;
+    position:relative;
+    overflow:hidden;
+    transition:transform .6s var(--ease);
+  }
+  .about-visual:hover{transform:translateY(-6px);}
+  .about-visual::before{
+    content:"";
+    position:absolute;
+    width:340px;height:340px;
+    border:1px solid var(--green-soft);
+    border-radius:50%;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%);
+  }
+  .about-visual::after{
+    content:"";
+    position:absolute;
+    width:440px;height:440px;
+    border:1px solid rgba(191,220,202,.5);
+    border-radius:50%;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%);
+  }
+  .about-visual img{width:100%;max-width:260px;margin:0 auto;position:relative;z-index:1;}
+  .about-lead{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:clamp(20px,2vw,25px);
+    color:var(--green-dark);
+    line-height:1.5;
+    margin-bottom:22px;
+  }
+  .about-points{display:grid;gap:22px;margin-top:34px;}
+  .about-points li{
+    display:flex;
+    gap:16px;
+    align-items:flex-start;
+    font-size:15px;
+    color:var(--text);
+  }
+  .about-points .dot{
+    flex:none;
+    width:10px;height:10px;
+    margin-top:7px;
+    border-radius:50%;
+    background:linear-gradient(120deg,var(--green),var(--green-dark));
+  }
+
+  /* ---- services ---- */
+  .services{background:var(--green-mist);}
+  .service-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:26px;
+  }
+  .service-card{
+    background:var(--white);
+    border-radius:26px;
+    padding:42px 30px;
+    border:1px solid rgba(23,59,46,.06);
+    transition:.5s var(--ease);
+    position:relative;
+    overflow:hidden;
+  }
+  .service-card .num{
+    position:absolute;
+    top:24px;right:28px;
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-size:15px;
+    color:var(--green-soft);
+    font-weight:600;
+  }
+  .service-card:hover{
+    transform:translateY(-10px);
+    box-shadow:0 30px 60px -30px rgba(23,59,46,.4);
+    border-color:transparent;
+  }
+  .service-icon{
+    width:56px;height:56px;
+    border-radius:18px;
+    background:linear-gradient(135deg,var(--green-soft),var(--green-mid));
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:26px;
+    transition:.5s var(--ease);
+  }
+  .service-card:hover .service-icon{transform:scale(1.08) rotate(-4deg);}
+  .service-icon svg{width:26px;height:26px;stroke:var(--green-dark);}
+  .service-card h3{font-size:18px;margin-bottom:0;letter-spacing:-.01em;}
+
+  /* ---- why us / stats band ---- */
+  .band{
+    background:linear-gradient(150deg,var(--green-dark) 0%,#0f2a20 100%);
+    color:var(--white);
+    padding:150px 0;
+    position:relative;
+  }
+  .band .section-head h2{color:var(--white);}
+  .band .eyebrow{color:var(--green-soft);}
+  .band .eyebrow::before{background:var(--green-soft);}
+  .why-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:24px;
+  }
+  .why-item{
+    text-align:center;
+    padding:44px 22px;
+    border-radius:24px;
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.08);
+    transition:.5s var(--ease);
+  }
+  .why-item:hover{
+    background:rgba(255,255,255,.08);
+    transform:translateY(-8px);
+    border-color:rgba(191,220,202,.4);
+  }
+  .why-item .ring{
+    width:64px;height:64px;
+    margin:0 auto 22px;
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,.35);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .why-item .ring svg{width:26px;height:26px;stroke:var(--green-soft);}
+  .why-item h3{color:var(--white);font-size:16px;margin-bottom:10px;}
+  .why-item p{color:rgba(255,255,255,.62);font-size:13.5px;}
+
+  /* ---- cta ---- */
+  .cta{
+    text-align:center;
+    padding:150px 0;
+  }
+  .cta-box{
+    max-width:820px;
+    margin:0 auto;
+    padding:86px 56px;
+    border-radius:36px;
+    background:linear-gradient(150deg,var(--green-dark) 0%,#0f2a20 100%);
+    position:relative;
+    overflow:hidden;
+  }
+  .cta-box::before{
+    content:"";
+    position:absolute;
+    width:600px;height:600px;
+    background:radial-gradient(circle, rgba(191,220,202,.18), transparent 70%);
+    top:-260px;right:-200px;
+  }
+  .cta-box > *{position:relative;z-index:1;}
+  .cta-box .eyebrow{color:var(--green-soft);}
+  .cta-box .eyebrow::before{background:var(--green-soft);}
+  .cta-box h2{color:var(--white);margin-top:10px;}
+  .cta-box p{max-width:480px;margin:0 auto 38px;color:rgba(255,255,255,.68);}
+  .cta-actions{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;}
+  .cta-box .btn-primary{background:var(--white);color:var(--green-dark);box-shadow:0 20px 45px -20px rgba(0,0,0,.4);}
+  .cta-box .btn-primary::after{display:none;}
+  .cta-box .btn-outline{border-color:rgba(255,255,255,.3);color:var(--white);background:transparent;}
+  .cta-box .btn-outline:hover{background:rgba(255,255,255,.08);}
+
+  /* ---- footer ---- */
+  footer{
+    background:var(--white);
+    color:var(--text);
+    padding:90px 0 30px;
+    border-top:1px solid rgba(23,59,46,.08);
+  }
+  .footer-grid{
+    display:grid;
+    grid-template-columns:1.4fr 1fr 1fr;
+    gap:50px;
+    padding-bottom:50px;
+    border-bottom:1px solid rgba(23,59,46,.1);
+  }
+  .footer-grid p{color:var(--text-light);font-size:14px;margin-top:18px;max-width:320px;}
+  .footer-col h4{
+    color:var(--green-dark);
+    font-size:13px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    font-weight:500;
+    margin-bottom:22px;
+  }
+  .footer-col ul{display:grid;gap:14px;}
+  .footer-col li{display:flex;gap:12px;font-size:14px;color:var(--text);}
+  .footer-col li svg{flex:none;width:18px;height:18px;stroke:var(--green);margin-top:2px;}
+  .footer-col a:hover{color:var(--green-dark);}
+  .footer-bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:26px;
+    font-size:13px;
+    color:var(--text-light);
+    flex-wrap:wrap;
+    gap:10px;
+  }
+
+  @media(max-width:960px){
+    .about-grid{grid-template-columns:1fr;}
+    .service-grid{grid-template-columns:repeat(2,1fr);}
+    .why-grid{grid-template-columns:repeat(2,1fr);row-gap:24px;}
+    .footer-grid{grid-template-columns:1fr;gap:34px;}
+    .hero-mark{opacity:.35;width:80%;right:-10%;}
+    section{padding:100px 0;}
+    .band,.cta{padding:100px 0;}
+  }
+  @media(max-width:720px){
+    nav{
+      position:fixed;
+      inset:64px 0 0 0;
+      background:var(--white);
+      transform:translateX(100%);
+      transition:.35s ease;
+      padding:30px 32px;
+      overflow-y:auto;
+    }
+    nav ul{flex-direction:column;align-items:flex-start;gap:22px;}
+    nav a{color:var(--text);}
+    #nav-toggle:checked ~ nav{transform:translateX(0);}
+    .burger{display:flex;}
+    .service-grid{grid-template-columns:1fr;}
+    .hero{padding:120px 0 80px;min-height:auto;}
+    .cta-box{padding:56px 26px;}
+    .scroll-cue{display:none;}
+  }
+
+  /* ---- line contact ---- */
+  .btn-line{
+    background:#06C755;
+    color:var(--white);
+    box-shadow:0 20px 45px -25px rgba(6,199,85,.6);
+  }
+  .btn-line:hover{transform:translateY(-3px);}
+  .btn-line svg{width:18px;height:18px;fill:var(--white);}
+  #line-modal{display:none;}
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:200;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  #line-modal:checked ~ .modal-overlay{display:flex;}
+  .modal-backdrop{
+    position:absolute;
+    inset:0;
+    background:rgba(10,10,10,.6);
+    backdrop-filter:blur(4px);
+  }
+  .modal-box{
+    position:relative;
+    z-index:1;
+    background:var(--white);
+    border-radius:24px;
+    padding:44px 40px;
+    max-width:340px;
+    width:100%;
+    text-align:center;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,.4);
+  }
+  .modal-close{
+    position:absolute;
+    top:16px;right:16px;
+    width:32px;height:32px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--green-mist);
+    color:var(--green-dark);
+    cursor:pointer;
+    font-size:16px;
+  }
+  .modal-box h3{font-size:19px;margin-bottom:6px;}
+  .modal-box p{font-size:13.5px;margin-bottom:24px;}
+  .qr-code-img{
+    width:220px;
+    height:220px;
+    object-fit:contain;
+    margin:0 auto;
+    border:1px solid var(--green-soft);
+    border-radius:16px;
+    padding:12px;
+    background:var(--white);
+  }
+
+  .btn-primary{position:relative;}
+  .btn-primary::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:999px;
+    box-shadow:0 0 0 0 rgba(63,122,92,.55);
+    animation:btnPulse 2.6s ease-out infinite;
+    pointer-events:none;
+  }
+  @keyframes btnPulse{
+    0%{box-shadow:0 0 0 0 rgba(63,122,92,.45);}
+    70%{box-shadow:0 0 0 16px rgba(63,122,92,0);}
+    100%{box-shadow:0 0 0 0 rgba(63,122,92,0);}
+  }
+
+  /* ---- premium grain texture ---- */
+  .grain{position:relative;}
+  .grain::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity:.05;
+    mix-blend-mode:overlay;
+    pointer-events:none;
+  }
+
+  /* ---- scroll reveal ---- */
+  .js .reveal{
+    opacity:0;
+    transform:translateY(36px) scale(.97);
+    filter:blur(8px);
+    transition:opacity 1s var(--ease), transform 1s var(--ease), filter 1s var(--ease);
+  }
+  .js .reveal.in-view{opacity:1;transform:translateY(0) scale(1);filter:blur(0);}
+  .reveal-group > *{transition-delay:calc(var(--i, 0) * 100ms);}
+
+  @media(prefers-reduced-motion: reduce){
+    .aurora span,.scroll-cue .chevron,.btn-primary::after,.reveal{
+      animation:none !important;
+      transition:none !important;
+      opacity:1 !important;
+      transform:none !important;
+      filter:none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav-wrap">
+    <a href="#top" class="logo">
+      <img src="logo.png" alt="AMN SURE">
+    </a>
+
+    <input type="checkbox" id="nav-toggle">
+    <nav>
+      <ul>
+        <li><a href="#top" data-th="หน้าแรก" data-en="Home">หน้าแรก</a></li>
+        <li><a href="#about" data-th="เกี่ยวกับเรา" data-en="About Us">เกี่ยวกับเรา</a></li>
+        <li><a href="#services" data-th="บริการของเรา" data-en="Services">บริการของเรา</a></li>
+        <li><a href="#why" data-th="ทำไมต้องเรา" data-en="Why Us">ทำไมต้องเรา</a></li>
+        <li><a href="used-equipment.php" data-th="เครื่องมือแพทย์มือสอง" data-en="Used Equipment">เครื่องมือแพทย์มือสอง</a></li>
+        <li class="social-links">
+          <a href="https://www.facebook.com/share/1CLDYWqSBv/?mibextid=wwXIfr" class="social-icon" aria-label="Facebook" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+          </a>
+          <a href="https://www.instagram.com/amnsure.th/" class="social-icon" aria-label="Instagram" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          </a>
+        </li>
+        <li class="lang-switch" role="group" aria-label="Language">
+          <button type="button" class="lang-btn active" data-lang="th">TH</button>
+          <button type="button" class="lang-btn" data-lang="en">EN</button>
+        </li>
+        <li><a href="#contact"><span class="btn btn-primary" style="padding:9px 18px;white-space:nowrap;" data-th="ติดต่อเรา" data-en="Contact Us">ติดต่อเรา</span></a></li>
+      </ul>
+    </nav>
+    <label for="nav-toggle" class="burger"><span></span><span></span><span></span></label>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="aurora"><span></span><span></span><span></span></div>
+  <img class="hero-mark" src="logo.png" alt="">
+  <div class="container hero-inner">
+    <span class="eyebrow">Medical Equipment Specialist</span>
+    <h1 data-i18n-html data-th="เครื่องมือแพทย์คุณภาพ&lt;br&gt;ที่คุณ&lt;em&gt;วางใจได้&lt;/em&gt;" data-en="Quality Medical Equipment&lt;br&gt;You Can &lt;em&gt;Trust&lt;/em&gt;">เครื่องมือแพทย์คุณภาพ<br>ที่คุณ<em>วางใจได้</em></h1>
+    <p class="lead" data-th="AMN SURE คือผู้เชี่ยวชาญด้านการประเมิน ซื้อ-ขาย และรับฝากขายเครื่องมือแพทย์มือสองจาก AMN ซึ่งผ่านการตรวจสอบมาตรฐานอย่างเข้มงวด เพื่อส่งมอบความมั่นใจให้กับสถานพยาบาลทุกขนาด" data-en="AMN SURE specializes in appraising, buying, selling, and consigning quality used medical equipment, rigorously inspected to bring confidence to healthcare facilities of every size.">AMN SURE คือผู้เชี่ยวชาญด้านการประเมิน ซื้อ-ขาย และรับฝากขายเครื่องมือแพทย์มือสองจาก AMN ซึ่งผ่านการตรวจสอบมาตรฐานอย่างเข้มงวด เพื่อส่งมอบความมั่นใจให้กับสถานพยาบาลทุกขนาด</p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn btn-primary" data-th="ติดต่อสอบถาม" data-en="Get in Touch">ติดต่อสอบถาม</a>
+    </div>
+  </div>
+  <div class="scroll-cue"><span>Scroll</span><span class="chevron"></span></div>
+</section>
+
+<section id="about">
+  <div class="container about-grid">
+    <div class="about-visual reveal">
+      <img src="logo.png" alt="AMN SURE">
+    </div>
+    <div class="reveal">
+      <span class="eyebrow">About AMN Sure</span>
+      <h2 data-i18n-html data-th="มาตรฐานที่เชื่อถือได้&lt;br&gt;ในทุกการซื้อขาย" data-en="Trusted Standards&lt;br&gt;In Every Transaction">มาตรฐานที่เชื่อถือได้<br>ในทุกการซื้อขาย</h2>
+      <p data-th="เราให้บริการด้านเครื่องมือแพทย์มือสองแบบครบวงจร ตั้งแต่การรับซื้อ ตรวจสอบสภาพและคุณภาพ ซ่อมบำรุง ไปจนถึงการจัดจำหน่ายให้กับสถานพยาบาลทั่วประเทศ ด้วยทีมงานผู้เชี่ยวชาญเฉพาะทางและกระบวนการตรวจสอบที่เข้มงวด" data-en="We offer end-to-end used medical equipment services — from purchasing, condition and quality inspection, and maintenance, to distribution for healthcare facilities nationwide, backed by specialist teams and a rigorous inspection process.">เราให้บริการด้านเครื่องมือแพทย์มือสองแบบครบวงจร ตั้งแต่การรับซื้อ ตรวจสอบสภาพและคุณภาพ ซ่อมบำรุง ไปจนถึงการจัดจำหน่ายให้กับสถานพยาบาลทั่วประเทศ ด้วยทีมงานผู้เชี่ยวชาญเฉพาะทางและกระบวนการตรวจสอบที่เข้มงวด</p>
+      <ul class="about-points">
+        <li><span class="dot"></span><span data-th="ตรวจสอบคุณภาพและความปลอดภัยทุกชิ้นก่อนส่งมอบ" data-en="Every item is quality- and safety-checked before delivery">ตรวจสอบคุณภาพและความปลอดภัยทุกชิ้นก่อนส่งมอบ</span></li>
+        <li><span class="dot"></span><span data-th="บริการรับฝากขายพร้อมระบบที่โปร่งใส ตรวจสอบได้" data-en="Consignment service with a transparent, verifiable process">บริการรับฝากขายพร้อมระบบที่โปร่งใส ตรวจสอบได้</span></li>
+        <li><span class="dot"></span><span data-th="ทีมงานผู้เชี่ยวชาญให้คำปรึกษาตลอดกระบวนการ" data-en="Specialist team advising you throughout the process">ทีมงานผู้เชี่ยวชาญให้คำปรึกษาตลอดกระบวนการ</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="services" id="services">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="eyebrow" style="margin:0 auto;justify-content:center;">Our Services</span>
+      <h2 data-th="บริการของเรา" data-en="Our Services">บริการของเรา</h2>
+    </div>
+    <div class="service-grid reveal-group">
+      <div class="service-card reveal" style="--i:0;">
+        <span class="num">01</span>
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
+        </div>
+        <h3 data-th="ซื้อ-ขายเครื่องมือแพทย์" data-en="Medical Equipment Trading">ซื้อ-ขายเครื่องมือแพทย์</h3>
+      </div>
+      <div class="service-card reveal" style="--i:1;">
+        <span class="num">02</span>
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M4 8l8-5 8 5M6 21h12"/></svg>
+        </div>
+        <h3 data-th="รับฝากขาย (Consignment)" data-en="Consignment Service">รับฝากขาย (Consignment)</h3>
+      </div>
+      <div class="service-card reveal" style="--i:2;">
+        <span class="num">03</span>
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/></svg>
+        </div>
+        <h3 data-th="ตรวจสอบและรับรองคุณภาพ" data-en="Quality Inspection &amp; Certification">ตรวจสอบและรับรองคุณภาพ</h3>
+      </div>
+      <div class="service-card reveal" style="--i:3;">
+        <span class="num">04</span>
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.6c0 5.4-8.8 10-8.8 10s-8.8-4.6-8.8-10a4.9 4.9 0 018.8-3 4.9 4.9 0 018.8 3z"/></svg>
+        </div>
+        <h3 data-th="บริการหลังการขาย" data-en="After-Sales Service">บริการหลังการขาย</h3>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band grain" id="why">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="eyebrow" style="margin:0 auto;justify-content:center;">Why Choose Us</span>
+      <h2 data-th="ทำไมต้อง SURE" data-en="Why Choose SURE">ทำไมต้อง SURE</h2>
+    </div>
+    <div class="why-grid reveal-group">
+      <div class="why-item reveal" style="--i:0;">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 6 6 1-4.5 4.4L17.5 20 12 17l-5.5 3 1-6.6L3 9l6-1 3-6z"/></svg></div>
+        <h3 data-th="มาตรฐาน" data-en="Standards">มาตรฐาน</h3>
+        <p data-th="ตรวจสอบคุณภาพทุกชิ้นตามมาตรฐานสากล" data-en="Every item inspected to international standards">ตรวจสอบคุณภาพทุกชิ้นตามมาตรฐานสากล</p>
+      </div>
+      <div class="why-item reveal" style="--i:1;">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c4.97-4 8-7.58 8-11a8 8 0 10-16 0c0 3.42 3.03 7 8 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+        <h3 data-th="ราคายุติธรรม" data-en="Fair Pricing">ราคายุติธรรม</h3>
+        <p data-th="ประเมินราคาโปร่งใส คุ้มค่าทุกการลงทุน" data-en="Transparent valuation, real value for every investment">ประเมินราคาโปร่งใส คุ้มค่าทุกการลงทุน</p>
+      </div>
+      <div class="why-item reveal" style="--i:2;">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+        <h3 data-th="บริการรวดเร็ว" data-en="Fast Service">บริการรวดเร็ว</h3>
+        <p data-th="ทีมงานดูแลและตอบกลับอย่างรวดเร็วทันใจ" data-en="Our team responds and follows through quickly">ทีมงานดูแลและตอบกลับอย่างรวดเร็วทันใจ</p>
+      </div>
+      <div class="why-item reveal" style="--i:3;">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/></svg></div>
+        <h3 data-th="ซื่อสัตย์โปร่งใส" data-en="Honest &amp; Transparent">ซื่อสัตย์โปร่งใส</h3>
+        <p data-th="ดำเนินธุรกิจด้วยความจริงใจตรวจสอบได้" data-en="We do business with integrity you can verify">ดำเนินธุรกิจด้วยความจริงใจตรวจสอบได้</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta" id="contact">
+  <div class="container">
+    <div class="cta-box reveal">
+      <span class="eyebrow" style="margin:0 auto;justify-content:center;">Get In Touch</span>
+      <h2 data-i18n-html data-th="พร้อมให้คำปรึกษา&lt;br&gt;ทุกความต้องการของคุณ" data-en="Ready to Assist&lt;br&gt;With All Your Needs">พร้อมให้คำปรึกษา<br>ทุกความต้องการของคุณ</h2>
+      <p data-th="ติดต่อทีมงาน AMN Sure เพื่อสอบถามข้อมูลเครื่องมือแพทย์ ซื้อ-ขาย หรือฝากขาย ได้ทุกช่องทาง" data-en="Reach the AMN Sure team to ask about medical equipment, buying, selling, or consignment through any channel.">ติดต่อทีมงาน AMN Sure เพื่อสอบถามข้อมูลเครื่องมือแพทย์ ซื้อ-ขาย หรือฝากขาย ได้ทุกช่องทาง</p>
+      <div class="cta-actions">
+        <a href="tel:0812354316" class="btn btn-primary" data-th="โทร 081-235-4316" data-en="Call 081-235-4316">โทร 081-235-4316</a>
+        <label for="line-modal" class="btn btn-line">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 5.66 2 10.15c0 4.02 3.58 7.39 8.42 8.03.33.07.77.22.88.5.1.26.07.66.03.92l-.14.87c-.04.26-.2 1 .88.55 1.08-.46 5.82-3.43 7.94-5.87C21.42 13.5 22 11.9 22 10.15 22 5.66 17.52 2 12 2z"/></svg>
+          <span data-th="ติดต่อผ่าน LINE" data-en="Contact via LINE">ติดต่อผ่าน LINE</span>
+        </label>
+        <a href="mailto:sure@amnsure.co.th" class="btn btn-outline">sure@amnsure.co.th</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a href="#top" class="logo">
+          <img src="logo.png" alt="AMN SURE">
+        </a>
+        <p data-th="ผู้เชี่ยวชาญด้านการซื้อ-ขายและรับฝากขายเครื่องมือแพทย์มือสองคุณภาพ เพื่อสถานพยาบาลที่ไว้วางใจได้" data-en="Specialists in buying, selling, and consigning quality used medical equipment, for healthcare facilities that trust us.">ผู้เชี่ยวชาญด้านการซื้อ-ขายและรับฝากขายเครื่องมือแพทย์มือสองคุณภาพ เพื่อสถานพยาบาลที่ไว้วางใจได้</p>
+      </div>
+      <div class="footer-col">
+        <h4 data-th="เมนู" data-en="Menu">เมนู</h4>
+        <ul>
+          <li><a href="#about" data-th="เกี่ยวกับเรา" data-en="About Us">เกี่ยวกับเรา</a></li>
+          <li><a href="#services" data-th="บริการของเรา" data-en="Services">บริการของเรา</a></li>
+          <li><a href="#why" data-th="ทำไมต้องเรา" data-en="Why Us">ทำไมต้องเรา</a></li>
+          <li><a href="used-equipment.php" data-th="เครื่องมือแพทย์มือสอง" data-en="Used Equipment">เครื่องมือแพทย์มือสอง</a></li>
+          <li><a href="#contact" data-th="ติดต่อเรา" data-en="Contact Us">ติดต่อเรา</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4 data-th="ติดต่อเรา" data-en="Contact Us">ติดต่อเรา</h4>
+        <ul>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c4.97-4 8-7.58 8-11a8 8 0 10-16 0c0 3.42 3.03 7 8 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+            <span data-th="1168/19 อาคารลุมพินีทาวเวอร์ ชั้น 13 ถ.พระราม 4 แขวงทุ่งมหาเมฆ เขตสาทร กทม. 10120" data-en="1168/19 Lumpini Tower, 13th Floor, Rama IV Road, Thung Maha Mek, Sathon, Bangkok 10120">1168/19 อาคารลุมพินีทาวเวอร์ ชั้น 13 ถ.พระราม 4 แขวงทุ่งมหาเมฆ เขตสาทร กทม. 10120</span>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.5 2.1L8 9.7a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.5c.9.3 1.8.5 2.7.6a2 2 0 011.7 2.1z"/></svg>
+            <a href="tel:0812354316">081-235-4316</a>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 6l8 7 8-7"/></svg>
+            <a href="mailto:sure@amnsure.co.th">sure@amnsure.co.th</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 AMN SURE. All rights reserved.</span>
+      <span data-th="ออกแบบด้วยความใส่ใจ เพื่อความเชื่อมั่นของคุณ" data-en="Crafted with care, built on trust">ออกแบบด้วยความใส่ใจ เพื่อความเชื่อมั่นของคุณ</span>
+    </div>
+  </div>
+</footer>
+
+<input type="checkbox" id="line-modal">
+<div class="modal-overlay">
+  <label for="line-modal" class="modal-backdrop"></label>
+  <div class="modal-box">
+    <label for="line-modal" class="modal-close">&times;</label>
+    <h3 data-th="เพิ่มเพื่อน LINE" data-en="Add us on LINE">เพิ่มเพื่อน LINE</h3>
+    <p data-th="สแกน QR Code เพื่อติดต่อ AMN Sure ผ่าน LINE" data-en="Scan the QR code to contact AMN Sure via LINE">สแกน QR Code เพื่อติดต่อ AMN Sure ผ่าน LINE</p>
+    <img src="line-qr.png" alt="LINE QR Code" class="qr-code-img">
+  </div>
+</div>
+
+<script>
+  var revealItems = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+    revealItems.forEach(function (item) { revealObserver.observe(item); });
+    setTimeout(function () {
+      revealItems.forEach(function (item) { item.classList.add('in-view'); });
+    }, 4000);
+  } else {
+    revealItems.forEach(function (item) { item.classList.add('in-view'); });
+  }
+
+  var siteHeader = document.querySelector('header');
+  function updateHeaderScroll() {
+    if (window.scrollY > 24) {
+      siteHeader.classList.add('scrolled');
+    } else {
+      siteHeader.classList.remove('scrolled');
+    }
+  }
+  window.addEventListener('scroll', updateHeaderScroll, { passive: true });
+  updateHeaderScroll();
+</script>
+
+<script>
+  function setLanguage(lang) {
+    lang = lang === 'en' ? 'en' : 'th';
+    document.documentElement.lang = lang;
+
+    document.querySelectorAll('[data-th]').forEach(function (el) {
+      var value = el.getAttribute('data-' + lang);
+      if (value === null) { return; }
+      if (el.hasAttribute('data-i18n-html')) {
+        el.innerHTML = value;
+      } else if (el.tagName === 'TITLE') {
+        document.title = value;
+      } else {
+        el.textContent = value;
+      }
+    });
+
+    document.querySelectorAll('.lang-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+    });
+
+    try { localStorage.setItem('amnsure-lang', lang); } catch (e) {}
+  }
+
+  document.querySelectorAll('.lang-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () { setLanguage(btn.getAttribute('data-lang')); });
+  });
+
+  var savedLang = 'th';
+  try { savedLang = localStorage.getItem('amnsure-lang') || 'th'; } catch (e) {}
+  if (savedLang === 'en') { setLanguage('en'); }
+</script>
+
+</body>
+</html>
