@@ -32,7 +32,7 @@ require __DIR__ . '/includes/site-header.php';
         <a href="product.php?id=<?= (int) $p['id'] ?>" style="display:block;border:1px solid rgba(23,59,46,.1);border-radius:20px;overflow:hidden;background:var(--white);transition:.3s ease;">
           <div style="aspect-ratio:4/3;background:var(--green-mist);display:flex;align-items:center;justify-content:center;overflow:hidden;">
             <?php if ($p['cover_image']): ?>
-              <img src="<?= h($p['cover_image']) ?>" alt="<?= h($p['name']) ?>" style="width:100%;height:100%;object-fit:cover;">
+              <img src="<?= h($p['cover_image']) ?>" alt="<?= h($p['name']) ?>" style="width:100%;height:100%;object-fit:contain;">
             <?php else: ?>
               <img src="logo.png" alt="" style="width:40%;opacity:.5;">
             <?php endif; ?>

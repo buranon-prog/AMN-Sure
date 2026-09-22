@@ -37,9 +37,16 @@ require __DIR__ . '/includes/site-header.php';
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:start;">
     <div>
-      <div id="mainImageBox" style="aspect-ratio:4/3;background:var(--green-mist);border-radius:20px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+      <div id="mainImageBox" style="position:relative;aspect-ratio:4/3;background:var(--green-mist);border-radius:20px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
         <?php if ($images): ?>
-          <img id="mainImage" src="<?= h($images[0]['image_path']) ?>" alt="<?= h($product['name']) ?>" style="width:100%;height:100%;object-fit:cover;">
+          <img id="mainImage" src="<?= h($images[0]['image_path']) ?>" alt="<?= h($product['name']) ?>" style="width:100%;height:100%;object-fit:contain;">
+          <?php if (count($images) > 1): ?>
+            <button type="button" onclick="slideImage(-1)" aria-label="รูปก่อนหน้า"
+                    style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:none;background:rgba(255,255,255,.9);color:var(--green-dark);font-size:18px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.15);">&larr;</button>
+            <button type="button" onclick="slideImage(1)" aria-label="รูปถัดไป"
+                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:none;background:rgba(255,255,255,.9);color:var(--green-dark);font-size:18px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.15);">&rarr;</button>
+            <span id="imageCounter" style="position:absolute;right:12px;bottom:12px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;padding:3px 10px;border-radius:999px;">1 / <?= count($images) ?></span>
+          <?php endif; ?>
         <?php else: ?>
           <img src="logo.png" alt="" style="width:35%;opacity:.5;">
         <?php endif; ?>
@@ -47,17 +54,30 @@ require __DIR__ . '/includes/site-header.php';
       <?php if (count($images) > 1): ?>
         <div id="thumbRow" style="display:flex;gap:10px;flex-wrap:wrap;">
           <?php foreach ($images as $i => $img): ?>
-            <img src="<?= h($img['image_path']) ?>" alt="" class="thumb-item" onclick="selectImage(this)"
+            <img src="<?= h($img['image_path']) ?>" alt="" class="thumb-item" onclick="selectImage(<?= $i ?>)"
                  style="width:70px;height:70px;object-fit:cover;border-radius:10px;cursor:pointer;border:2px solid <?= $i === 0 ? 'var(--green)' : 'transparent' ?>;">
           <?php endforeach; ?>
         </div>
         <script>
-          function selectImage(el) {
-            document.getElementById('mainImage').src = el.src;
-            document.querySelectorAll('#thumbRow .thumb-item').forEach(function (t) {
-              t.style.borderColor = 'transparent';
+          var galleryImages = <?= json_encode(array_column($images, 'image_path')) ?>;
+          var galleryIndex = 0;
+
+          function renderGallery() {
+            document.getElementById('mainImage').src = galleryImages[galleryIndex];
+            document.getElementById('imageCounter').textContent = (galleryIndex + 1) + ' / ' + galleryImages.length;
+            document.querySelectorAll('#thumbRow .thumb-item').forEach(function (t, i) {
+              t.style.borderColor = i === galleryIndex ? 'var(--green)' : 'transparent';
             });
-            el.style.borderColor = 'var(--green)';
+          }
+
+          function selectImage(i) {
+            galleryIndex = i;
+            renderGallery();
+          }
+
+          function slideImage(step) {
+            galleryIndex = (galleryIndex + step + galleryImages.length) % galleryImages.length;
+            renderGallery();
           }
         </script>
       <?php endif; ?>
