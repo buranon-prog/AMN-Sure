@@ -113,13 +113,14 @@
     max-width:1180px;
     margin:0 auto;
   }
-  nav ul{display:flex;gap:38px;align-items:center;}
+  nav ul{display:flex;gap:22px;align-items:center;}
   nav a{
-    font-size:15px;
+    font-size:14.5px;
     font-weight:400;
     color:var(--text);
     position:relative;
     padding:6px 0;
+    white-space:nowrap;
   }
   nav a::after{
     content:"";
@@ -130,9 +131,9 @@
     transition:.3s;
   }
   nav a:hover::after{width:100%;}
-  .social-links{display:flex;gap:10px;}
+  .social-links{display:flex;gap:8px;}
   .social-icon{
-    width:36px;height:36px;
+    width:32px;height:32px;
     display:flex;align-items:center;justify-content:center;
     border-radius:50%;
     border:1px solid rgba(23,59,46,.15);
@@ -147,21 +148,23 @@
     align-items:center;
     border:1px solid rgba(23,59,46,.15);
     border-radius:999px;
-    padding:3px;
-    gap:2px;
+    padding:2px;
+    gap:1px;
+    flex:none;
   }
   .lang-btn{
     border:none;
     background:transparent;
     font-family:'Prompt', sans-serif;
-    font-size:12.5px;
+    font-size:12px;
     font-weight:500;
     letter-spacing:.03em;
     color:var(--text-light);
-    padding:5px 12px;
+    padding:4px 9px;
     border-radius:999px;
     cursor:pointer;
     transition:.25s ease;
+    white-space:nowrap;
   }
   .lang-btn.active{
     background:linear-gradient(120deg,var(--green-dark),var(--green));
@@ -528,7 +531,7 @@
           <button type="button" class="lang-btn active" data-lang="th">TH</button>
           <button type="button" class="lang-btn" data-lang="en">EN</button>
         </li>
-        <li><a href="#contact"><span class="btn btn-primary" style="padding:10px 22px;" data-th="ติดต่อเรา" data-en="Contact Us">ติดต่อเรา</span></a></li>
+        <li><a href="#contact"><span class="btn btn-primary" style="padding:9px 18px;white-space:nowrap;" data-th="ติดต่อเรา" data-en="Contact Us">ติดต่อเรา</span></a></li>
       </ul>
     </nav>
     <label for="nav-toggle" class="burger"><span></span><span></span><span></span></label>
