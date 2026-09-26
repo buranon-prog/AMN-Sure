@@ -13,6 +13,8 @@ $stmt = getDb()->query(
 );
 $products = $stmt->fetchAll();
 
+$inquiryCount = (int) getDb()->query('SELECT COUNT(*) FROM inquiries')->fetchColumn();
+
 $pageTitle = 'จัดการสินค้า';
 require __DIR__ . '/_layout_head.php';
 ?>
@@ -20,6 +22,7 @@ require __DIR__ . '/_layout_head.php';
 <div class="topbar">
   <h1>จัดการสินค้ามือสอง</h1>
   <nav>
+    <a href="inquiries.php">ผู้สนใจสินค้า<?= $inquiryCount ? ' (' . $inquiryCount . ')' : '' ?></a>
     <a href="../used-equipment.php" target="_blank">ดูหน้าเว็บจริง &rarr;</a>
     <a href="logout.php">ออกจากระบบ</a>
   </nav>
