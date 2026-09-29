@@ -84,7 +84,7 @@ Task, Activity และ Document ผูกได้กับทุก object �
 
 | # | ตาราง | คอลัมน์หลัก |
 |---|---|---|
-| 1 | `users` | email (unique), password_hash, name, phone, active, last_login_at, **session_version** (เพิ่มค่าเพื่อเตะ session ทิ้งทันทีเมื่อปิดบัญชี/เปลี่ยนสิทธิ์) |
+| 1 | `users` | username (unique, ใช้เข้าสู่ระบบ), email (unique, ไม่บังคับ), password_hash, must_change_password, name, phone, active, last_login_at, **session_version** (เพิ่มค่าเพื่อเตะ session ทิ้งทันทีเมื่อปิดบัญชี/เปลี่ยนสิทธิ์) |
 | 2 | `roles` | code (unique): `GM`, `SALES_COORDINATOR`, `SALES_EXECUTIVE`, `SALES_DIRECTOR`, `SERVICE_ENGINEER`, `SERVICE_DIRECTOR`, `MARKETING`, `MANAGEMENT`, 🟡`ADMIN`; name, description |
 | 3 | `user_roles` | user_id, role_id — unique(user_id, role_id) คนเดียวมีได้หลาย role สิทธิ์รวมกัน |
 

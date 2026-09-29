@@ -1,28 +1,27 @@
 # 03 — โมดูล, API และสิทธิ์ (RBAC)
 
-## โครงสร้างโค้ด
+## โครงสร้างโค้ด (PHP — `crm/`)
 
-ใช้ **Server Actions** ของ Next.js ตามแบบเดิม ไม่ได้เปิด REST API แยก ยกเว้นอัปโหลดไฟล์และ export ที่เป็น Route Handler
+หน้าเว็บ server-rendered ทุกคำขอผ่าน `index.php?r=module.action` ไม่มี REST API แยก
 
 ```
-src/
-  server/                     ← business logic ทั้งหมด (ห้าม import จาก client component)
-    core/
-      permissions.ts          ← capability, role → capability, can()/assert()
-      audit.ts                ← writeAudit(tx, entity, id, action, before, after)
-      refno.ts                ← nextRef(tx, "DO", year)
-      transitions.ts          ← ตัวช่วยตรวจสถานะต้นทาง/ปลายทาง
-      redact.ts               ← ตัดฟิลด์ 🔒 ออกตามสิทธิ์ก่อนส่งให้หน้าเว็บ
-      files.ts                ← เก็บ/อ่านไฟล์ (local disk หรือ S3 — ดู Q21)
-    customers/   leads/   devices/   acquisition/   sales/
-    fulfillment/ tasks/   activities/ documents/  search/  admin/
-  app/(crm)/…                 ← หน้าเว็บ (ดู 04) เรียก server/* ผ่าน actions.ts ของแต่ละหน้า
-tests/
-  permissions.test.ts   acquisition-flow.test.ts   sales-flow.test.ts   followup.test.ts
+crm/
+  index.php                   ← front controller: GET → c_{module}_{action}(), POST → c_{module}_post_{action}() + ตรวจ CSRF
+  app/lib/
+    perm.php                  ← role → capability, can()/require_cap(), redact() ตัดฟิลด์ 🔒
+    audit.php                 ← audit_log(), insert_audited(), update_audited() (เก็บค่าเก่า/ใหม่), log_activity()
+    db.php                    ← PDO, uuid(), next_ref('DO') → DO-2026-0001, tx() (ซ้อนกันได้), db_lock()
+    auth.php                  ← login (ชื่อผู้ใช้/อีเมล), rate limit, session_version, CSRF
+    files.php                 ← เก็บไฟล์ใน storage/uploads (ปิดด้วย .htaccess) ดาวน์โหลดผ่านการตรวจสิทธิ์
+  app/services/               ← business logic ทั้งหมด: customers, leads, devices, acquisition, sales, fulfillment,
+                                 tasks, documents, search, service, admin, users, dashboard, parents
+  app/controllers/ app/views/ ← หน้าจอ (ดู 04)
+  tests/run.php               ← RBAC + state transitions + Scenario A–E (เรียก service ตรง)
+  tests/http_test.php         ← end-to-end ผ่าน HTTP ทุก role
 ```
 
-ทุก service function มีโครงเหมือนกัน: `assert(capability)` → โหลด record → ตรวจสถานะ → `prisma.$transaction(...)`
-(เขียนข้อมูล + audit + activity + task) → ตัดฟิลด์ 🔒 ออกก่อน return
+ทุก service function มีโครงเหมือนกัน: `require_cap()` → `tx()` → `db_lock()` + ตรวจสถานะต้นทาง →
+เขียนข้อมูล + audit + activity + task → ส่งกลับ (หน้าเว็บตัดฟิลด์ 🔒 ด้วย `redact()`/`can('finance.view')`)
 
 ## Module map
 
@@ -85,17 +84,16 @@ V = ดู, E = สร้าง/แก้, A = อนุมัติ, — = ไ�
 - ตาราง audit_logs ไม่มีทางแก้หรือลบผ่าน UI หรือ service ใด ๆ
 - บันทึก login สำเร็จ/ล้มเหลวด้วย
 
-## ปรับปรุงระบบ login เดิม (ทำใน P0)
+## ระบบ login (ทำแล้ว)
 
-1. **Session เพิกถอนได้ทันที:** เก็บ `session_version` ใน JWT แล้วเทียบกับ DB ทุก request ฝั่ง server
-   ถ้าปิดบัญชีหรือเปลี่ยน role จะเพิ่มค่านี้ → ผู้ใช้ถูกออกจากระบบทันที (ตอนนี้ต้องรอถึง 30 วัน)
-2. **จำกัดการเดารหัส:** ผิด 5 ครั้งใน 15 นาที (ต่อ email หรือ IP) → ล็อก 15 นาที 🟡
-3. **สิทธิ์อ่านจาก role ใน DB** แทนการเก็บ permission ทั้งก้อนใน JWT
+1. **Session เพิกถอนได้ทันที:** โหลดผู้ใช้ + role จาก DB ทุก request และเทียบ `session_version`
+   ปิดบัญชี / เปลี่ยน role / รีเซ็ตรหัส → มีผลทันที
+2. **จำกัดการเดารหัส:** ผิด 5 ครั้งใน 15 นาที (ต่อชื่อผู้ใช้ หรือ 20 ครั้งต่อ IP) → ล็อก 15 นาที (ตั้งค่าได้)
+3. **บัญชีใหม่/รีเซ็ตรหัส** ใช้รหัสชั่วคราว และบังคับให้ผู้ใช้ตั้งรหัสใหม่เองตอนเข้าครั้งแรก
 
 ## Automated tests (ข้อ 15.9)
 
-- **permissions.test.ts** — ทุกแถวของตาราง RBAC ข้างบน: role ที่ไม่มีสิทธิ์เรียก action แล้วต้องถูกปฏิเสธ และ redact ต้องลบฟิลด์ 🔒 (Scenario E)
-- **acquisition-flow.test.ts** — Scenario A ครบวงจร + ข้ามขั้นไม่ได้ (เช่น complete inspection โดยที่ข้อ mandatory ว่าง → error, สร้าง acquisition โดยไม่มี approval → error)
-- **sales-flow.test.ts** — Scenario B + กฎ WON + QC FAIL ห้ามไป READY_FOR_DELIVERY + serial ไม่ตรงห้ามส่งของ
-- **followup.test.ts** — Scenario C: OVERDUE และสิ่งที่แสดงบน dashboard
-- ทุก transition: ถ้าขั้นใดล้มกลางทาง ต้อง rollback ทั้งหมด
+- **crm/tests/run.php** — Scenario A–E ที่ระดับ service: role ที่ไม่มีสิทธิ์ถูกปฏิเสธ, redact ลบฟิลด์ 🔒, ข้ามขั้นไม่ได้
+  (ตรวจเครื่องไม่ครบ, ซื้อโดยไม่มีอนุมัติ, QC FAIL ห้ามพร้อมส่ง, serial ไม่ตรงห้ามส่งมอบ), กฎ WON, OVERDUE, rollback เมื่อขั้นใดล้ม
+- **crm/tests/http_test.php** — ทำ Scenario A + B ผ่านฟอร์มจริงในนามแต่ละ role, เปิดทุกหน้าในทุก role, CSRF, XSS,
+  การดาวน์โหลดไฟล์ตามสิทธิ์, ตัวเลขการเงินไม่หลุดไปถึง role ที่ไม่มีสิทธิ์, ปิดบัญชีแล้วถูกเตะออกทันที
