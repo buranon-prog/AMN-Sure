@@ -8,7 +8,7 @@ requireLogin();
 $id = isset($_GET['id']) ? (int) $_GET['id'] : (isset($_POST['id']) ? (int) $_POST['id'] : 0);
 $product = [
     'id' => 0, 'name' => '', 'brand' => '', 'model' => '',
-    'condition_text' => '', 'description' => '', 'status' => 'available',
+    'condition_text' => '', 'description' => '', 'status' => 'available', 'price' => '',
 ];
 $images = [];
 $error = '';
@@ -37,6 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $product['description'] = trim($_POST['description'] ?? '');
     $product['status'] = in_array($_POST['status'] ?? '', ['available', 'sold', 'hidden'], true)
         ? $_POST['status'] : 'available';
+    $priceInput = trim($_POST['price'] ?? '');
+    $product['price'] = $priceInput === '' ? null : (float) $priceInput;
 
     if ($product['name'] === '') {
         $error = 'กรุณากรอกชื่อสินค้า';
@@ -50,20 +52,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($id) {
                 $stmt = $db->prepare(
-                    'UPDATE products SET name=?, brand=?, model=?, condition_text=?, description=?, status=? WHERE id=?'
+                    'UPDATE products SET name=?, brand=?, model=?, condition_text=?, description=?, status=?, price=? WHERE id=?'
                 );
                 $stmt->execute([
                     $product['name'], $product['brand'], $product['model'],
-                    $product['condition_text'], $product['description'], $product['status'], $id,
+                    $product['condition_text'], $product['description'], $product['status'], $product['price'], $id,
                 ]);
             } else {
                 $stmt = $db->prepare(
-                    'INSERT INTO products (name, brand, model, condition_text, description, status)
-                     VALUES (?, ?, ?, ?, ?, ?)'
+                    'INSERT INTO products (name, brand, model, condition_text, description, status, price)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)'
                 );
                 $stmt->execute([
                     $product['name'], $product['brand'], $product['model'],
-                    $product['condition_text'], $product['description'], $product['status'],
+                    $product['condition_text'], $product['description'], $product['status'], $product['price'],
                 ]);
                 $id = (int) $db->lastInsertId();
             }
@@ -150,13 +152,19 @@ require __DIR__ . '/_layout_head.php';
       <textarea id="description" name="description"><?= h($product['description']) ?></textarea>
     </div>
 
-    <div class="form-field">
-      <label for="status">สถานะ</label>
-      <select id="status" name="status">
-        <option value="available" <?= $product['status'] === 'available' ? 'selected' : '' ?>>พร้อมขาย</option>
-        <option value="sold" <?= $product['status'] === 'sold' ? 'selected' : '' ?>>ขายแล้ว</option>
-        <option value="hidden" <?= $product['status'] === 'hidden' ? 'selected' : '' ?>>ซ่อน (ไม่แสดงบนเว็บ)</option>
-      </select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-field">
+        <label for="status">สถานะ</label>
+        <select id="status" name="status">
+          <option value="available" <?= $product['status'] === 'available' ? 'selected' : '' ?>>พร้อมขาย</option>
+          <option value="sold" <?= $product['status'] === 'sold' ? 'selected' : '' ?>>ขายแล้ว</option>
+          <option value="hidden" <?= $product['status'] === 'hidden' ? 'selected' : '' ?>>ซ่อน (ไม่แสดงบนเว็บ)</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label for="price">ราคา (บาท) — แสดงเฉพาะในลิงก์แคตตาล็อกพนักงานเท่านั้น ไม่ขึ้นบนเว็บสาธารณะ</label>
+        <input type="number" id="price" name="price" step="0.01" min="0" placeholder="ไม่ระบุ" value="<?= $product['price'] !== null && $product['price'] !== '' ? h((string) $product['price']) : '' ?>">
+      </div>
     </div>
 
     <?php if ($images): ?>
