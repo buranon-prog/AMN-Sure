@@ -138,6 +138,15 @@
     if (ev.target.matches && ev.target.matches('select[data-autosubmit]')) ev.target.form.submit();
   });
 
+  // รีเฟรชหน้าเอง (data-autorefresh="วินาที") — เว้นตอนแท็บไม่ได้เปิดดูอยู่ หรือกำลังกดยืนยันอะไรค้างไว้
+  var auto = document.querySelector('[data-autorefresh]');
+  if (auto) {
+    var sec = parseInt(auto.getAttribute('data-autorefresh'), 10) || 30;
+    window.setInterval(function () {
+      if (document.visibilityState === 'visible' && !document.querySelector('form[data-submitted="1"]')) window.location.reload();
+    }, sec * 1000);
+  }
+
   // ปุ่มพิมพ์
   document.querySelectorAll('[data-print]').forEach(function (b) {
     b.addEventListener('click', function (ev) { ev.preventDefault(); window.print(); });

@@ -25,6 +25,7 @@ $nav = [
         ['settings', 'รายการตัวเลือก & ค่าตั้งต้น', $view],
         ['export', 'Export', $view],
         ['users', 'บัญชีผู้ใช้', $mgr],
+        ['gm', 'ผู้ใช้ออนไลน์ (GM)', is_gm()],
     ],
 ];
 ?><!doctype html>
@@ -69,7 +70,7 @@ $nav = [
         <details>
           <summary><span class="avatar"><?= e(mb_substr($u['name'], 0, 1)) ?></span><span class="uname"><?= e($u['name']) ?></span></summary>
           <div class="menu">
-            <div class="menu-head"><?= e($u['name']) ?><small><?= e(role_name($u['role'])) ?></small></div>
+            <div class="menu-head"><?= e($u['name']) ?><small><?= e(role_name($u['role'], $u['is_gm'] === 1)) ?></small></div>
             <a href="<?= e(url('auth.password')) ?>">เปลี่ยนรหัสผ่าน</a>
             <form method="post" action="<?= e(url('auth.logout')) ?>"><?= csrf_field() ?><button type="submit">ออกจากระบบ</button></form>
           </div>

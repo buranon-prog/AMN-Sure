@@ -23,6 +23,7 @@ function c_users_edit(): void
     $u = one('SELECT u.*, COALESCE(p.can_view, 0) AS can_view, COALESCE(p.can_edit, 0) AS can_edit FROM users u
               LEFT JOIN user_permissions p ON p.user_id = u.id AND p.module = ? WHERE u.id = ?', [SURE_MODULE, $id]);
     if (!$u) throw new NotFoundError('ไม่พบผู้ใช้');
+    if ((int) $u['is_gm'] === 1 && !is_gm()) throw new ForbiddenError('บัญชี GM แก้ไขได้โดย GM เท่านั้น');
     render('users/form', ['title' => 'แก้ไขผู้ใช้', 'u' => $u]);
 }
 

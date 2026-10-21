@@ -288,3 +288,14 @@ body.auth { min-height: 100vh; margin: 0; display: flex; align-items: center; ju
   .card { box-shadow: none; break-inside: avoid; }
   body { background: #fff; }
 }
+
+/* หน้า GM: ผู้ใช้ออนไลน์ */
+.small { font-size: 12px; }
+.presence { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.presence::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+.presence.on { color: var(--green); }
+.presence.on::before { box-shadow: 0 0 0 3px var(--green-soft); }
+.presence.idle { color: var(--amber); }
+.presence.off { color: var(--gray); }
+.gm-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.gm-actions form { margin: 0; }

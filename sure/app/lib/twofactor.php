@@ -252,6 +252,7 @@ function complete_login(array $user): void
     $_SESSION['uid'] = $user['id'];
     $_SESSION['sv'] = (int) val('SELECT session_version FROM users WHERE id = ?', [$user['id']]);
     $_SESSION['last_seen'] = time();
+    $_SESSION['sid'] = session_record_start($user['id']);
     unset($GLOBALS['__USER']);
     q('UPDATE users SET last_login_at = ? WHERE id = ?', [now(), $user['id']]);
     act_as($user['id']);

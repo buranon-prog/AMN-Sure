@@ -541,15 +541,92 @@ ok(!$r3['invite'] && (int) val('SELECT session_version FROM users WHERE id = ?',
 throws(function () use ($nu) { user_send_password_link($nu); }, AppError::class, 'บัญชีที่ปิดแล้วส่งลิงก์ไม่ได้', 'ถูกปิด');
 q('DELETE FROM login_attempts');
 
+section('GM — คุมสถานะบัญชีของทุกคน + ดูผู้ใช้ออนไลน์');
+$gm = create_user_raw('buranon', GM_EMAIL, 'Buranon (GM)', 'Passw0rd123', ROLE_MANAGER, true, true, false);
+q('UPDATE users SET is_gm = 1 WHERE id = ?', [$gm]);
+$_SESSION = [];
+as_user($manager);
+ok(!is_gm(), 'Manager ทั่วไปไม่ใช่ GM');
+throws(function () { gm_users(); }, ForbiddenError::class, 'Manager ทั่วไปเปิดหน้า GM ไม่ได้', 'GM เท่านั้น');
+throws(function () use ($gm) { user_save($gm, ['email' => GM_EMAIL, 'name' => 'Buranon (GM)', 'role' => ROLE_MANAGER, 'active' => 0]); }, ForbiddenError::class, 'Manager ทั่วไปปิด/แก้บัญชี GM ไม่ได้', 'GM');
+throws(function () use ($gm) { user_send_password_link($gm); }, ForbiddenError::class, 'Manager ทั่วไปรีเซ็ตรหัสผ่านของ GM ไม่ได้', 'GM');
+eq((int) val('SELECT active FROM users WHERE id = ?', [$gm]), 1, 'บัญชี GM ยังใช้งานได้');
+as_user($staff);
+throws(function () use ($manager) { gm_logout_everywhere($manager); }, ForbiddenError::class, 'พนักงานใช้คำสั่ง GM ไม่ได้');
+
+$sidStaff = session_record_start($staff);
+$sidStaff2 = session_record_start($staff);
+$sidViewer = session_record_start($viewer);
+$ago = function ($min) { return date('Y-m-d H:i:s', time() - $min * 60); };
+q('UPDATE user_sessions SET last_seen_at = ? WHERE id = ?', [$ago(20), $sidStaff2]);
+q('UPDATE user_sessions SET last_seen_at = ? WHERE id = ?', [$ago(9 * 60), $sidViewer]);
+as_user($gm);
+ok(is_gm(), 'บัญชี ' . GM_EMAIL . ' เป็น GM');
+$_SESSION['sid'] = session_record_start($gm);
+$byId = array_column(gm_users(), null, 'id');
+eq($byId[$staff]['presence'], 'online', 'ใช้งานภายใน 5 นาที → ออนไลน์');
+eq($byId[$staff]['devices'], 2, 'นับเครื่องที่เปิดอยู่ 2 เครื่อง');
+eq($byId[$viewer]['presence'], 'offline', 'ไม่ได้ใช้งานเกิน 8 ชั่วโมง (ระบบให้ออกแล้ว) → ออฟไลน์');
+eq($byId[$noperm]['presence'], 'offline', 'ไม่เคยเข้าสู่ระบบ → ออฟไลน์');
+eq($byId[$gm]['presence'], 'online', 'GM เห็นตัวเองออนไลน์');
+q('UPDATE user_sessions SET last_seen_at = ? WHERE id = ?', [$ago(20), $sidStaff]);
+eq(array_column(gm_users(), null, 'id')[$staff]['presence'], 'idle', 'ทุกเครื่องไม่ได้ใช้งานเกิน 5 นาที → เปิดค้างไว้');
+ok(session_record_touch($sidStaff, $staff), 'เครื่องที่ยังไม่ถูกสั่งออก ใช้งานต่อได้');
+eq(array_column(gm_users(), null, 'id')[$staff]['presence'], 'online', 'กลับมาใช้งาน → ออนไลน์อีกครั้ง');
+$live = array_column(gm_sessions(), 'id');
+ok(in_array($sidStaff, $live, true) && in_array($sidStaff2, $live, true) && !in_array($sidViewer, $live, true), 'รายการเครื่องที่เข้าสู่ระบบอยู่ (ไม่รวมเครื่องที่หมดเวลา)');
+
+gm_kick_session($sidStaff2);
+ok(!session_record_touch($sidStaff2, $staff), 'GM ให้ออกจากระบบรายเครื่อง → เครื่องนั้นหลุดทันที');
+ok(session_record_touch($sidStaff, $staff), 'เครื่องอื่นของคนเดียวกันยังใช้ได้');
+throws(function () { gm_kick_session($_SESSION['sid']); }, AppError::class, 'ให้เครื่องที่ตัวเองใช้อยู่ออกไม่ได้', 'เครื่องที่คุณใช้อยู่');
+throws(function () use ($sidStaff2) { gm_kick_session($sidStaff2); }, AppError::class, 'เครื่องที่ออกไปแล้ว → แจ้ง', 'ออกจากระบบไปแล้ว');
+$sv = (int) val('SELECT session_version FROM users WHERE id = ?', [$staff]);
+gm_logout_everywhere($staff);
+ok(!session_record_touch($sidStaff, $staff) && (int) val('SELECT session_version FROM users WHERE id = ?', [$staff]) === $sv + 1, 'GM ให้ออกจากระบบทุกเครื่อง');
+eq(array_column(gm_users(), null, 'id')[$staff]['devices'], 0, 'ไม่เหลือเครื่องที่เปิดอยู่');
+throws(function () use ($gm) { gm_logout_everywhere($gm); }, AppError::class, 'คำสั่ง GM ใช้กับบัญชีตัวเองไม่ได้', 'ตัวเอง');
+throws(function () use ($gm) { gm_set_active($gm, false); }, AppError::class, 'GM ปิดบัญชีตัวเองไม่ได้', 'ตัวเอง');
+
+$sidMgr = session_record_start($manager);
+gm_set_active($manager, false);
+ok((int) val('SELECT active FROM users WHERE id = ?', [$manager]) === 0 && !session_record_touch($sidMgr, $manager), 'GM ปิดบัญชี Manager คนอื่นได้ → ออกจากระบบทันที');
+eq(val('SELECT end_reason FROM user_sessions WHERE id = ?', [$sidMgr]), 'revoked', 'บันทึกเหตุผล: บัญชีถูกปิด');
+gm_set_active($manager, true);
+eq((int) val('SELECT active FROM users WHERE id = ?', [$manager]), 1, 'GM เปิดบัญชีคืนได้');
+
+q('DELETE FROM login_attempts');
+for ($i = 0; $i < 5; $i++) db_insert('login_attempts', ['login' => 'manager@example.test', 'ip' => '10.0.0.9', 'success' => 0, 'created_at' => now()]);
+ok(array_column(gm_users(), null, 'id')[$manager]['locked'], 'GM เห็นบัญชีที่ถูกล็อกจากใส่รหัสผิด');
+ok(strpos((string) (password_step('manager@example.test', 'Passw0rd123')['error'] ?? ''), 'หลายครั้ง') !== false, 'บัญชีล็อกอยู่ → เข้าสู่ระบบไม่ได้');
+gm_unlock($manager);
+ok(!array_column(gm_users(), null, 'id')[$manager]['locked'] && isset(password_step('manager@example.test', 'Passw0rd123')['user']), 'GM ปลดล็อก → เข้าสู่ระบบได้ทันที');
+
+password_step('manager@example.test', 'wrong-password1');
+$kinds = array_unique(array_column(gm_activity(), 'kind'));
+ok(in_array('login', $kinds, true) && in_array('end', $kinds, true) && in_array('fail', $kinds, true), 'ประวัติ: เข้าสู่ระบบ / ออกจากระบบ / เข้าไม่สำเร็จ');
+$r = user_save($gm, ['email' => GM_EMAIL, 'name' => 'Buranon', 'role' => ROLE_MANAGER, 'active' => 1]);
+eq(val('SELECT name FROM users WHERE id = ?', [$gm]), 'Buranon', 'GM แก้บัญชีตัวเองได้');
+eq(ua_label('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'), 'Chrome · Windows', 'อ่านชื่ออุปกรณ์: Chrome · Windows');
+eq(ua_label('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'), 'Safari · iPhone', 'อ่านชื่ออุปกรณ์: Safari · iPhone');
+$_SESSION = [];
+q('DELETE FROM login_attempts');
+as_user($manager);
+
 section('อัปเกรดฐานข้อมูลจากเวอร์ชัน 1.0.0 อัตโนมัติ');
 db()->exec('DROP TABLE auth_tokens');
+db()->exec('DROP TABLE user_sessions');
 db()->exec('ALTER TABLE users DROP COLUMN activated_at');
+db()->exec('ALTER TABLE users DROP COLUMN is_gm');
 setting_set('schema_version', '1');
 schema_upgrade();
+ok((int) val("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'user_sessions'") === 1, 'สร้างตาราง user_sessions');
+eq((int) val('SELECT is_gm FROM users WHERE email = ?', [GM_EMAIL]), 1, GM_EMAIL . ' เป็น GM หลังอัปเกรด');
+eq((int) val('SELECT COUNT(*) FROM users WHERE is_gm = 1'), 1, 'มี GM คนเดียว');
 ok((int) val("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'activated_at'") === 1, 'เพิ่มคอลัมน์ activated_at');
 ok((int) val("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'auth_tokens'") === 1, 'สร้างตาราง auth_tokens');
 eq((int) val('SELECT COUNT(*) FROM users WHERE activated_at IS NULL'), 0, 'บัญชีเดิมถือว่าเปิดใช้งานแล้ว');
-eq(setting('schema_version'), '2', 'schema_version = 2');
+eq(setting('schema_version'), '3', 'schema_version = 3');
 schema_upgrade();
 ok(true, 'รันซ้ำได้ไม่ error');
 

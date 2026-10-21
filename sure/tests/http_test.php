@@ -478,6 +478,94 @@ $m->post('customers.delete', ['_pk' => 'SURE001']);
 $m->follow();
 ok(strpos((string) $m->flashError(), 'ลบไม่ได้ เพราะมีข้อมูลในตารางอื่นอ้างถึง') !== false, 'Manager ลบลูกค้าที่มีข้อมูลอ้างถึง → ข้อความที่อ่านเข้าใจ');
 
+// ================================================================ GM
+section('GM: ผู้ใช้ออนไลน์ + คุมสถานะบัญชีของทุกคน');
+$m->get('gm');
+if ($m->last['status'] !== 200) {
+    ok($m->last['status'] === 403, 'Manager ที่ไม่ใช่ GM เปิดหน้า GM → 403');
+    echo "  (บัญชี $mUser ไม่ใช่ GM — ข้ามส่วนที่ทดสอบในนาม GM)\n";
+} else {
+    $m->okPage('gm');
+    ok(strpos($m->last['body'], 'r=gm"') !== false, 'GM เห็นเมนู "ผู้ใช้ออนไลน์ (GM)"');
+    $userRow = function ($body, $email) {
+        $q = preg_quote(htmlspecialchars($email), '/');
+        return preg_match('/presence (on|idle|off)">[^<]*<\/span><\/td>\s*<td><b>[^<]*<\/b>(?:\s*<span[^>]*>[^<]*<\/span>)?<div class="muted small">' . $q . '<\/div>(.*?)<\/tr>/s', $body, $mm) ? ['presence' => $mm[1], 'rest' => $mm[2]] : null;
+    };
+    $sessionSid = function ($body, $email) {
+        $q = preg_quote(htmlspecialchars($email), '/');
+        return preg_match('/<div class="muted small">' . $q . '<\/div><\/td>.*?name="sid" value="([0-9a-f]{32})"/s', $body, $mm) ? $mm[1] : null;
+    };
+    $e->get('customers');
+    $m->get('gm');
+    $row = $userRow($m->last['body'], $su);
+    ok($row && $row['presence'] === 'on', 'พนักงานที่กำลังใช้งาน → ออนไลน์');
+    ok($row && preg_match('/<td class="num">1<\/td>/', $row['rest']), 'นับเครื่องที่เปิดอยู่ 1 เครื่อง');
+    $nrow = $userRow($m->last['body'], $nu);
+    ok($nrow && $nrow['presence'] === 'off', 'บัญชีที่ถูกรีเซ็ตรหัส → ออฟไลน์');
+    ok(strpos($m->last['body'], 'เครื่องนี้') !== false, 'เห็นเครื่องที่ตัวเองใช้อยู่');
+    ok(strpos($m->last['body'], 'data-autorefresh="30"') !== false, 'หน้ารีเฟรชเองทุก 30 วินาที');
+
+    $sid = $sessionSid($m->last['body'], $su);
+    ok($sid !== null, 'รายการเครื่องที่เข้าสู่ระบบอยู่ มีเครื่องของพนักงาน');
+    $m->post('gm.kick', ['sid' => (string) $sid]);
+    $m->follow();
+    ok(strpos((string) $m->flashSuccess(), 'ออกจากระบบบนเครื่องนั้นแล้ว') !== false, 'GM ให้ออกจากระบบรายเครื่อง');
+    $e->get('customers');
+    ok($e->last['status'] === 303 && strpos((string) $e->last['location'], 'auth.login') !== false, 'เครื่องที่ถูกสั่งออก → หลุดทันที');
+    ok($e->login($su, $sp), 'เข้าสู่ระบบใหม่ได้');
+
+    $m->get('gm');
+    preg_match('/<div class="muted small">' . preg_quote($su, '/') . '<\/div>.*?name="id" value="([0-9a-f-]{36})"/s', $m->last['body'], $mm);
+    $sid2 = $mm[1] ?? '';
+    $m->post('gm.logout_all', ['id' => $sid2]);
+    $m->follow();
+    ok(strpos((string) $m->flashSuccess(), 'ออกจากระบบทุกเครื่องแล้ว') !== false, 'GM ให้ออกจากระบบทุกเครื่อง');
+    $e->get('customers');
+    ok($e->last['status'] === 303, 'พนักงานหลุดจากทุกเครื่อง');
+    $m->post('gm.active', ['id' => $sid2, 'active' => '0']);
+    $m->follow();
+    ok(strpos((string) $m->flashSuccess(), 'ปิดบัญชี') === 0, 'GM ปิดบัญชีจากหน้า GM');
+    ok(!$e->login($su, $sp), 'บัญชีที่ถูกปิด → เข้าสู่ระบบไม่ได้');
+    $m->post('gm.active', ['id' => $sid2, 'active' => '1']);
+    $m->follow();
+    ok($e->login($su, $sp), 'GM เปิดบัญชีคืน → เข้าสู่ระบบได้');
+    $m->get('gm');
+    ok(strpos($m->last['body'], 'GM สั่งออกจากระบบ') !== false && strpos($m->last['body'], 'เข้าไม่สำเร็จ') !== false, 'ประวัติแสดงการถูกสั่งออก และการเข้าไม่สำเร็จ');
+
+    // Manager คนที่ 2 (ไม่ใช่ GM)
+    $mu2 = 'mgr' . $suffix . '@example.test';
+    $mp2 = 'Mgr' . $suffix . 'pass';
+    $t = microtime(true);
+    $m->post('users.save', ['name' => 'ทดสอบ manager2', 'email' => $mu2, 'role' => 'MANAGER', 'active' => '1']);
+    $m2 = new Client($base, "$tmp/m2.txt", 'manager2');
+    ok($m2->activate((string) mailbox_token(mailbox_latest($MAILDIR, $mu2, $t)), $mp2), 'Manager คนที่ 2 เปิดใช้งานบัญชี');
+    $m2->get('gm');
+    ok($m2->last['status'] === 403, 'Manager ที่ไม่ใช่ GM เปิดหน้า GM → 403');
+    $m2->get('users');
+    ok(strpos($m2->last['body'], 'r=gm"') === false, 'Manager ที่ไม่ใช่ GM ไม่เห็นเมนู GM');
+    $m->get('users');
+    preg_match('/r=users\.edit&amp;id=([0-9a-f-]{36})"><b>[^<]*<\/b><\/a><\/td><td>' . preg_quote(mb_strtolower($mUser), '/') . '</', $m->last['body'], $mm);
+    $gmId = $mm[1] ?? '';
+    ok($gmId !== '' && strpos($m2->last['body'], 'id=' . $gmId) === false, 'Manager คนอื่นไม่มีลิงก์แก้บัญชี GM');
+    $m2->get('users.edit', ['id' => $gmId]);
+    ok($m2->last['status'] === 403, 'Manager คนอื่นเปิดหน้าแก้บัญชี GM → 403');
+    $m2->post('users.save', ['id' => $gmId, 'name' => 'x', 'email' => $mUser, 'role' => 'MANAGER']);
+    ok($m2->last['status'] === 403, 'Manager คนอื่นปิดบัญชี GM → 403');
+    $m2->post('users.reset', ['id' => $gmId]);
+    ok($m2->last['status'] === 403, 'Manager คนอื่นรีเซ็ตรหัสผ่าน GM → 403');
+    $m2->post('gm.logout_all', ['id' => $gmId]);
+    ok($m2->last['status'] === 403, 'Manager คนอื่นสั่ง GM ออกจากระบบ → 403');
+    $e->get('gm');
+    ok($e->last['status'] === 403, 'พนักงานเปิดหน้า GM → 403');
+    $m->get('home');
+    ok(strpos((string) $m->last['location'], 'auth.login') === false, 'GM ยังอยู่ในระบบ');
+    $m->get('gm');
+    preg_match('/<div class="muted small">' . preg_quote($mu2, '/') . '<\/div>.*?name="id" value="([0-9a-f-]{36})"/s', $m->last['body'], $mm);
+    $m->post('gm.active', ['id' => $mm[1] ?? '', 'active' => '0']);
+    $m2->get('users');
+    ok($m2->last['status'] === 303, 'GM ปิดบัญชี Manager คนอื่นได้ → Manager นั้นหลุดทันที');
+}
+
 section('ล้างข้อมูลที่ test สร้าง (Manager ลบ) — รันซ้ำได้');
 foreach ([['payments', 'HT' . $suffix], ['services', $sv], ['followups', $fu], ['sales', $so], ['branches', $cust . '-01'], ['devices', $dev], ['customers', $cust]] as [$p, $id]) {
     $m->post($p . '.delete', ['_pk' => $id]);

@@ -12,6 +12,8 @@ function change_own_password(string $current, string $new, string $confirm): voi
     if (password_verify($new, $row['password_hash'])) throw new AppError('รหัสผ่านใหม่ต้องไม่ซ้ำกับรหัสเดิม');
     q('UPDATE users SET password_hash = ?, must_change_password = 0, session_version = session_version + 1, updated_at = ?, updated_by = ? WHERE id = ?',
         [password_hash($new, PASSWORD_DEFAULT), now6(), $u['id'], $u['id']]);
+    // เครื่องอื่นหลุด เครื่องนี้ใช้ต่อได้
+    sessions_end_for_user($u['id'], 'revoked', $_SESSION['sid'] ?? null);
 }
 
 /**
@@ -39,12 +41,16 @@ function user_save(?string $id, array $d): array
         if ($id) {
             $before = one('SELECT * FROM users WHERE id = ? FOR UPDATE', [$id]);
             if (!$before) throw new NotFoundError('ไม่พบผู้ใช้');
+            if ((int) $before['is_gm'] === 1 && !is_gm()) throw new ForbiddenError('บัญชี GM แก้ไขได้โดย GM เท่านั้น');
             if ($id === current_user_id() && (!$active || $role !== ROLE_MANAGER)) throw new AppError('ปิดบัญชีหรือลดสิทธิ์ของตัวเองไม่ได้');
             $data = ['email' => $email, 'name' => $name, 'role' => $role, 'active' => $active];
             $emailChanged = mb_strtolower((string) $before['email']) !== $email;
             if ($emailChanged && $id === current_user_id()) throw new AppError('เปลี่ยนอีเมลของตัวเองไม่ได้ — ให้ Manager อีกคนเปลี่ยนให้');
             // เปลี่ยนประเภทบัญชี / ปิดบัญชี / เปลี่ยนอีเมล → session เดิมหลุดทันที
-            if ($before['role'] !== $role || ((int) $before['active'] === 1 && !$active) || $emailChanged) $data['session_version'] = (int) $before['session_version'] + 1;
+            if ($before['role'] !== $role || ((int) $before['active'] === 1 && !$active) || $emailChanged) {
+                $data['session_version'] = (int) $before['session_version'] + 1;
+                sessions_end_for_user($id, 'revoked');
+            }
             if ($emailChanged) {
                 // อีเมลใหม่ต้องยืนยันก่อน: รหัสผ่านเดิมใช้ไม่ได้ ต้องตั้งใหม่จากลิงก์ที่ส่งไปอีเมลใหม่
                 $data['password_hash'] = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
@@ -104,6 +110,7 @@ function user_send_password_link(string $id): array
     require_manager();
     $u = one('SELECT * FROM users WHERE id = ?', [$id]);
     if (!$u) throw new NotFoundError('ไม่พบผู้ใช้');
+    if ((int) $u['is_gm'] === 1 && !is_gm()) throw new ForbiddenError('บัญชี GM แก้ไขได้โดย GM เท่านั้น');
     if ((int) $u['active'] !== 1) throw new AppError('บัญชีนี้ถูกปิดอยู่ — เปิดบัญชีก่อน');
     if (empty($u['email'])) throw new AppError('บัญชีนี้ยังไม่มีอีเมล — ใส่อีเมลก่อน');
     $reset = $u['activated_at'] !== null;
@@ -111,6 +118,7 @@ function user_send_password_link(string $id): array
         if ($id === current_user_id()) throw new AppError('ใช้หน้า "เปลี่ยนรหัสผ่าน" สำหรับบัญชีของตัวเอง');
         q('UPDATE users SET password_hash = ?, session_version = session_version + 1, updated_at = ?, updated_by = ? WHERE id = ?',
             [password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT), now6(), current_user_id(), $id]);
+        sessions_end_for_user($id, 'revoked');
     }
     issue_activation($u, $reset);
     return $u;

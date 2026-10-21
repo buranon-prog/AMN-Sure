@@ -15,6 +15,7 @@ sure/
   app/lib/records.php       เพิ่ม/แก้/ลบ + validation หัวข้อ 4–5 + รหัสถัดไป
   app/lib/perm.php          สิทธิ์ MANAGER / EMPLOYEE (canView, canEdit ของโมดูล SURE)
   app/lib/twofactor.php     เปิดใช้งานด้วยลิงก์ในอีเมล + รหัสยืนยัน 6 หลักทางอีเมลทุกครั้งที่เข้าสู่ระบบ
+  app/lib/sessions.php      การเข้าสู่ระบบแต่ละเครื่อง (ผู้ใช้ออนไลน์) + คำสั่งของ GM
   app/lib/mailer.php        ส่งอีเมล: SMTP (SSL/STARTTLS, ไม่ต้องติดตั้ง library) · PHP mail() · ไฟล์ (dev/test)
   app/controllers/table.php รายการ + ฟอร์มของ C B A D S P V T (ค้นหา/กรอง/เรียง/แบ่งหน้า)
   app/controllers/          search, profit, dashboard, settings, export, users, auth
@@ -27,7 +28,7 @@ sure/
 
 หน้าจอ (route) ↔ สเปกหัวข้อ 7: `?r=customers` `branches` `followups` `devices` `sales` `payments` `services` (+ `.new` / `.edit&id=`),
 `search` (/sure/search), `costs` (/sure/costs), `profit` (/sure/profit), `dashboard` (/sure/dashboard), `settings` (/sure/settings),
-`export`, `users` (/admin/users)
+`export`, `users` (/admin/users), `gm` (ผู้ใช้ออนไลน์ — GM เท่านั้น)
 
 ## สิทธิ์ (สเปกหัวข้อ 3)
 
@@ -48,6 +49,9 @@ sure/
   ระบบส่ง **ลิงก์เปิดใช้งาน** (ใช้ครั้งเดียว 48 ชม.) → ผู้ใช้ตั้งรหัสผ่านเอง · ขอลิงก์ใหม่ได้ที่หน้า "เข้าใช้ครั้งแรก" (เฉพาะบัญชีที่ยังไม่เปิดใช้)
 - **ทุกครั้งที่เข้าสู่ระบบ**: อีเมล + รหัสผ่าน → **รหัส 6 หลักทางอีเมล** (10 นาที, ผิดได้ 5 ครั้ง, ส่งใหม่ได้ทุก 60 วินาที สูงสุด 5 ครั้ง)
   รหัสผ่านหรือรหัสยืนยันผิดรวมกัน 5 ครั้ง / 15 นาที → ล็อกบัญชี 15 นาที (20 ครั้งต่อ IP)
+- **GM** (`users.is_gm`, คนเดียว — Manager 1 ในตัวติดตั้ง / อัปเกรดตั้ง `GM_EMAIL` ให้): หน้า `?r=gm` ดูผู้ใช้ออนไลน์ (ตาราง `user_sessions`
+  1 แถวต่อการเข้าสู่ระบบ 1 เครื่อง อัปเดตเวลาใช้งานไม่เกินนาทีละครั้ง) · ให้ออกจากระบบรายเครื่อง/ทุกเครื่อง · ปิด-เปิด · ปลดล็อกบัญชีของทุกคน
+  · Manager คนอื่นแก้/ปิด/รีเซ็ตบัญชี GM ไม่ได้ (`app/lib/sessions.php`, `app/controllers/gm.php`)
 - ลืมรหัสผ่าน: Manager กด "ส่งลิงก์ตั้งรหัสผ่านใหม่" (รหัสเดิมใช้ไม่ได้ทันที + หลุดทุกเครื่อง) — ไม่มีการรีเซ็ตเองทางอีเมล
 - เก็บเฉพาะ HMAC ของลิงก์/รหัส (`app_key` ใน config) ในตาราง `auth_tokens` · ลิงก์สร้างจาก `base_url` ใน config ไม่ใช้ Host header
 - `app/config.php`: `base_url`, `app_key`, `mail` (ดู `app/lib/mailer.php`), `email_2fa` (false = ปิดชั่วคราวเมื่ออีเมลเสีย)
@@ -84,7 +88,7 @@ php sure/tests/http_test.php http://127.0.0.1:8090 <อีเมล Manager> <�
 
 1. **Stack**: สเปกหัวข้อ 0 ให้ใช้ Next.js + Prisma ของ repo แต่ผู้ใช้ต้องการวางบน cPanel subdomain + MySQL ของ cPanel
    ซึ่งยังไม่ยืนยันว่ารองรับ Node.js จึงสร้างเป็น PHP + MySQL (แบบเดียวกับ `crm/`) ไม่แตะโค้ด Next.js เดิม
-2. **ตารางระบบสิทธิ์**: `users`, `user_permissions` (module `SURE`, can_view, can_edit), `login_attempts`, `auth_tokens` (ลิงก์/รหัสยืนยันทางอีเมล)
+2. **ตารางระบบสิทธิ์**: `users`, `user_permissions` (module `SURE`, can_view, can_edit), `login_attempts`, `auth_tokens` (ลิงก์/รหัสยืนยันทางอีเมล), `user_sessions` (ผู้ใช้ออนไลน์)
    — แทน RBAC ของ Next.js ที่สเปกอ้างถึง (ไม่ใช่ข้อมูลธุรกิจ) · ไม่มีตาราง audit log แยก (สเปกกำหนดเฉพาะ audit fields 4 ตัวในทุกตาราง)
    · การยืนยันทางอีเมลเพิ่มตามคำขอของเจ้าของหลังสเปก (สเปกเดิมใช้รหัสผ่านอย่างเดียว และให้ Manager ตั้งรหัสชั่วคราว)
 3. **ชื่อคอลัมน์**: `by` → `by_name`, `usage` → `usage_info`, `close` → `close_date` (คำสงวนของ MySQL) — label และ field_key ในโค้ดยังเป็นตามสเปก

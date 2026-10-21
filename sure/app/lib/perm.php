@@ -7,10 +7,24 @@
 const SURE_MODULE = 'SURE';
 const ROLE_MANAGER = 'MANAGER';
 const ROLE_EMPLOYEE = 'EMPLOYEE';
+// GM = Manager ที่คุมสถานะบัญชีของทุกคน (รวม Manager คนอื่น) และดูผู้ใช้ออนไลน์ได้ — มีได้คนเดียว ตั้งจากตัวติดตั้ง
+const GM_EMAIL = 'buranon@amn.co.th';
 
-function role_name(string $role): string
+function role_name(string $role, bool $gm = false): string
 {
+    if ($gm) return 'GM';
     return $role === ROLE_MANAGER ? 'Manager' : 'พนักงาน (Employee)';
+}
+
+function is_gm(): bool
+{
+    $u = current_user();
+    return $u !== null && $u['role'] === ROLE_MANAGER && $u['is_gm'] === 1;
+}
+
+function require_gm(): void
+{
+    if (!is_gm()) throw new ForbiddenError('หน้านี้สำหรับ GM เท่านั้น');
 }
 
 function is_manager(): bool

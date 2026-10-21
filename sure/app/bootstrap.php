@@ -4,7 +4,7 @@
 define('APP_DIR', __DIR__);
 define('ROOT_DIR', dirname(__DIR__));
 if (!defined('STORAGE_DIR')) define('STORAGE_DIR', ROOT_DIR . '/storage');
-define('APP_VERSION', '1.1.1');
+define('APP_VERSION', '1.2.0');
 define('APP_NAME', 'AMN SURE');
 define('MIN_PHP', '7.4.0');
 
@@ -28,6 +28,7 @@ require APP_DIR . '/lib/users.php';
 require APP_DIR . '/lib/options.php';
 require APP_DIR . '/lib/mailer.php';
 require APP_DIR . '/lib/twofactor.php';
+require APP_DIR . '/lib/sessions.php';
 
 function app_installed(): bool
 {

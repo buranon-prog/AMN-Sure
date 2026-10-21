@@ -2,6 +2,7 @@
 // Session, CSRF (ขั้นตอนเข้าสู่ระบบ + ยืนยันทางอีเมล อยู่ใน twofactor.php)
 // - โหลดผู้ใช้และ role จากฐานข้อมูลทุก request: ปิดบัญชี/เปลี่ยนสิทธิ์แล้วมีผลทันที
 // - session_version: เพิ่มค่าเมื่อรีเซ็ตรหัส/เปลี่ยนอีเมล → session เก่าทุกเครื่องหลุดทันที
+// - user_sessions: 1 แถวต่อการเข้าสู่ระบบ 1 เครื่อง (presence.php) — GM สั่งปิดแถวไหน เครื่องนั้นหลุดทันที
 
 function session_boot(): void
 {
@@ -42,14 +43,18 @@ function current_user(): ?array
     $GLOBALS['__USER'] = null;
     if (session_status() !== PHP_SESSION_ACTIVE || empty($_SESSION['uid'])) return null;
 
-    $idleLimit = 60 * (int) setting('session_idle_minutes', 480);
+    $idleLimit = 60 * session_idle_minutes();
     if (isset($_SESSION['last_seen']) && time() - (int) $_SESSION['last_seen'] > $idleLimit) {
-        logout();
+        logout('idle');
         return null;
     }
     $user = load_user($_SESSION['uid']);
     if (!$user || !$user['active'] || (int) $user['session_version'] !== (int) ($_SESSION['sv'] ?? -1)) {
-        logout();
+        logout('revoked');
+        return null;
+    }
+    if (!session_record_touch((string) ($_SESSION['sid'] ?? ''), $user['id'])) {
+        logout('kicked');
         return null;
     }
     $_SESSION['last_seen'] = time();
@@ -65,12 +70,13 @@ function current_user_id(): ?string
 
 function load_user(string $id): ?array
 {
-    $user = one('SELECT u.id, u.username, u.email, u.name, u.role, u.active, u.must_change_password, u.session_version,
+    $user = one('SELECT u.id, u.username, u.email, u.name, u.role, u.is_gm, u.active, u.must_change_password, u.session_version,
                         COALESCE(p.can_view, 0) AS sure_view, COALESCE(p.can_edit, 0) AS sure_edit
                  FROM users u LEFT JOIN user_permissions p ON p.user_id = u.id AND p.module = ?
                  WHERE u.id = ?', [SURE_MODULE, $id]);
     if (!$user) return null;
     $user['active'] = (int) $user['active'];
+    $user['is_gm'] = (int) $user['is_gm'];
     $user['sure_view'] = (int) $user['sure_view'];
     $user['sure_edit'] = (int) $user['sure_edit'];
     return $user;
@@ -82,9 +88,11 @@ function act_as(?string $userId): void
     $GLOBALS['__USER'] = $userId ? load_user($userId) : null;
 }
 
-function logout(): void
+/** $reason บันทึกใน user_sessions: logout (กดออกเอง) | idle | revoked (ปิดบัญชี/รีเซ็ตรหัส) | kicked (GM สั่ง) */
+function logout(string $reason = 'logout'): void
 {
     if (session_status() === PHP_SESSION_ACTIVE) {
+        if (!empty($_SESSION['sid'])) session_record_end((string) $_SESSION['sid'], $reason);
         $_SESSION = [];
         if (ini_get('session.use_cookies')) {
             $p = session_get_cookie_params();

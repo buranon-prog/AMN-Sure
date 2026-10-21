@@ -29,8 +29,8 @@ function install_checks(): array
     return $checks;
 }
 
-// บัญชี Manager ที่กำหนดไว้ (แก้ได้ในหน้าติดตั้ง) — ผู้ใช้สมัครเองไม่ได้
-const INSTALL_MANAGERS = [['buranon@amn.co.th', 'Buranon'], ['pongsak@astracom.co.th', 'Pongsak']];
+// บัญชี Manager ที่กำหนดไว้ (แก้ได้ในหน้าติดตั้ง) — ผู้ใช้สมัครเองไม่ได้ · Manager 1 = GM (คุมทุกบัญชี + ดูผู้ใช้ออนไลน์)
+const INSTALL_MANAGERS = [[GM_EMAIL, 'Buranon'], ['pongsak@astracom.co.th', 'Pongsak']];
 
 function install_config_array(array $db, string $baseUrl, array $mail): array
 {
@@ -99,7 +99,7 @@ if (app_installed()) {
         }
         $managers = [];
         foreach ([1, 2] as $i) {
-            $em = v_email($_POST['mgr_email_' . $i] ?? null, 'อีเมล Manager ' . $i);
+            $em = v_email($_POST['mgr_email_' . $i] ?? null, $i === 1 ? 'อีเมล GM' : 'อีเมล Manager ' . $i);
             $nm = s($_POST['mgr_name_' . $i] ?? '');
             if ($em === null) continue;
             if (!$nm) throw new AppError('กรุณากรอกชื่อของ Manager ' . $i);
@@ -107,6 +107,8 @@ if (app_installed()) {
             $managers[$em] = $nm;
         }
         if (!$managers) throw new AppError('กรุณากรอกอีเมล Manager อย่างน้อย 1 คน');
+        $gmEmail = v_email($_POST['mgr_email_1'] ?? null, 'อีเมล GM');
+        if ($gmEmail === null) throw new AppError('กรุณากรอกอีเมล GM (Manager 1)');
 
         try {
             $pdo = db_connect($db);
@@ -126,7 +128,11 @@ if (app_installed()) {
         $cfg = install_config_array($db, $baseUrl, $mail);
         $GLOBALS['APP_CONFIG'] = $cfg;
         $ids = [];
-        foreach ($managers as $em => $nm) $ids[] = create_user_invited($em, $nm, ROLE_MANAGER, true, true);
+        foreach ($managers as $em => $nm) {
+            $uid = create_user_invited($em, $nm, ROLE_MANAGER, true, true);
+            if ($em === $gmEmail) q('UPDATE users SET is_gm = 1 WHERE id = ?', [$uid]);
+            $ids[] = $uid;
+        }
 
         $php = install_config_php($cfg);
         if (@file_put_contents(APP_DIR . '/config.php', $php, LOCK_EX) === false) {
@@ -245,8 +251,9 @@ ob_start();
     <p class="muted">สร้างได้เฉพาะอีเมลที่ระบุ (สมัครเองไม่ได้) — ระบบส่งลิงก์ไปให้แต่ละคนตั้งรหัสผ่านเอง</p>
     <div class="form-grid">
       <?php foreach ([1, 2] as $i): $d = INSTALL_MANAGERS[$i - 1]; ?>
-        <?= f_input('mgr_email_' . $i, 'อีเมล Manager ' . $i, $_POST['mgr_email_' . $i] ?? $d[0], ['type' => 'email', 'required' => $i === 1]) ?>
-        <?= f_input('mgr_name_' . $i, 'ชื่อ Manager ' . $i, $_POST['mgr_name_' . $i] ?? $d[1]) ?>
+        <?= f_input('mgr_email_' . $i, $i === 1 ? 'อีเมล Manager 1 — GM' : 'อีเมล Manager ' . $i, $_POST['mgr_email_' . $i] ?? $d[0], ['type' => 'email', 'required' => $i === 1,
+            'hint' => $i === 1 ? 'GM = Manager ที่คุมสถานะบัญชีของทุกคนและดูผู้ใช้ออนไลน์ได้' : null]) ?>
+        <?= f_input('mgr_name_' . $i, $i === 1 ? 'ชื่อ GM' : 'ชื่อ Manager ' . $i, $_POST['mgr_name_' . $i] ?? $d[1]) ?>
       <?php endforeach; ?>
     </div>
     <div class="form-actions"><button class="btn primary" type="submit">ติดตั้ง</button></div>

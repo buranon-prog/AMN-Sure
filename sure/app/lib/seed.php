@@ -88,12 +88,13 @@ function db_assert_ours(): void
     throw new ForeignDatabaseError('ฐานข้อมูล ' . val('SELECT DATABASE()') . ' ไม่ใช่ฐานข้อมูลของ AMN SURE');
 }
 
-/** เวอร์ชันโครงสร้างฐานข้อมูลของโค้ดนี้ (2 = ยืนยันตัวตนทางอีเมล) */
-const SCHEMA_VERSION = 2;
+/** เวอร์ชันโครงสร้างฐานข้อมูลของโค้ดนี้ (2 = ยืนยันตัวตนทางอีเมล, 3 = GM + ผู้ใช้ออนไลน์) */
+const SCHEMA_VERSION = 3;
 
 /**
  * อัปเกรดฐานข้อมูลของระบบที่ติดตั้งไว้แล้วให้ตรงกับโค้ดเวอร์ชันนี้ (รันอัตโนมัติ ครั้งเดียว)
  * v1 → v2: เพิ่ม users.activated_at + ตาราง auth_tokens · บัญชีเดิมที่มีรหัสผ่านอยู่แล้วถือว่าเปิดใช้งานแล้ว
+ * v2 → v3: เพิ่ม users.is_gm + ตาราง user_sessions · ตั้งบัญชี GM_EMAIL (ถ้ามี) เป็น GM
  */
 function schema_upgrade(): void
 {
@@ -118,6 +119,26 @@ function schema_upgrade(): void
   CONSTRAINT fk_auth_tokens_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         q('UPDATE users SET activated_at = created_at WHERE activated_at IS NULL');
+    }
+    if ($v < 3) {
+        $has = (int) val("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'is_gm'");
+        if (!$has) db()->exec('ALTER TABLE users ADD COLUMN is_gm TINYINT(1) NOT NULL DEFAULT 0 AFTER role');
+        db()->exec("CREATE TABLE IF NOT EXISTS user_sessions (
+  id CHAR(32) NOT NULL PRIMARY KEY,
+  user_id CHAR(36) NOT NULL,
+  ip VARCHAR(45) NOT NULL,
+  user_agent VARCHAR(255) NULL,
+  created_at DATETIME NOT NULL,
+  last_seen_at DATETIME NOT NULL,
+  ended_at DATETIME NULL,
+  end_reason VARCHAR(20) NULL,
+  KEY ix_user_sessions_user (user_id, ended_at),
+  KEY ix_user_sessions_seen (last_seen_at),
+  CONSTRAINT fk_user_sessions_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        if (!(int) val('SELECT COUNT(*) FROM users WHERE is_gm = 1')) {
+            q('UPDATE users SET is_gm = 1 WHERE email = ? AND role = ?', [GM_EMAIL, ROLE_MANAGER]);
+        }
     }
     setting_set('schema_version', (string) SCHEMA_VERSION);
 }

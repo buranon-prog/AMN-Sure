@@ -12,6 +12,7 @@ CREATE TABLE users (
   email VARCHAR(190) NULL,
   name VARCHAR(190) NOT NULL,
   role VARCHAR(20) NOT NULL DEFAULT 'EMPLOYEE',          -- MANAGER | EMPLOYEE
+  is_gm TINYINT(1) NOT NULL DEFAULT 0,                   -- GM: Manager ที่คุมทุกบัญชี + ดูผู้ใช้ออนไลน์ (ตั้งจากตัวติดตั้งเท่านั้น)
   active TINYINT(1) NOT NULL DEFAULT 1,
   password_hash VARCHAR(255) NOT NULL,
   must_change_password TINYINT(1) NOT NULL DEFAULT 1,
@@ -49,6 +50,21 @@ CREATE TABLE login_attempts (
   created_at DATETIME NOT NULL,
   KEY ix_login_attempts_login (login, created_at),
   KEY ix_login_attempts_ip (ip, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- การเข้าสู่ระบบแต่ละเครื่อง: ใช้แสดงผู้ใช้ออนไลน์ และให้ GM สั่งออกจากระบบรายเครื่อง
+CREATE TABLE user_sessions (
+  id CHAR(32) NOT NULL PRIMARY KEY,
+  user_id CHAR(36) NOT NULL,
+  ip VARCHAR(45) NOT NULL,
+  user_agent VARCHAR(255) NULL,
+  created_at DATETIME NOT NULL,
+  last_seen_at DATETIME NOT NULL,
+  ended_at DATETIME NULL,
+  end_reason VARCHAR(20) NULL,                           -- logout | idle | revoked | kicked
+  KEY ix_user_sessions_user (user_id, ended_at),
+  KEY ix_user_sessions_seen (last_seen_at),
+  CONSTRAINT fk_user_sessions_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ลิงก์เปิดใช้งาน (purpose = activate) และรหัสยืนยันเข้าสู่ระบบทางอีเมล (purpose = login)
