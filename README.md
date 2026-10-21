@@ -9,7 +9,7 @@
 
 ระบบตามสเปก `SURE-ClaudeCode-Prompt.md` สร้างเป็นแอป PHP + MySQL แยกใน [`sure/`](./sure/) เพื่อวางบน cPanel subdomain
 (สเปกระบุ Next.js แต่ต้องใช้บน cPanel + MySQL — รายละเอียดใน [`sure/README.md`](./sure/README.md)) · ติดตั้ง: [`sure/INSTALL-TH.md`](./sure/INSTALL-TH.md)
-· ไฟล์อัปโหลด: `dist/amnsure-sure-v1.1.0.zip`
+· ไฟล์อัปโหลด: `dist/amnsure-sure-v1.1.1.zip`
 
 **สิทธิ์** — บัญชี 2 ประเภท ตรวจที่ server ทุกหน้า/action/export:
 - **MANAGER** เห็นและทำได้ทุกอย่าง: ต้นทุนเครื่อง, กำไรรายการขาย, สรุป, คอลัมน์สรุปลูกค้า, export, แก้รายการตัวเลือก + VAT, ลบแถว, จัดการบัญชี (`?r=users`)

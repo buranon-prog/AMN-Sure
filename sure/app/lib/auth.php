@@ -7,11 +7,14 @@ function session_boot(): void
 {
     if (session_status() === PHP_SESSION_ACTIVE) return;
     $secure = is_https();
-    session_name('AMNSURESESS');
+    // cookie ผูกกับ subdomain นี้เท่านั้น (ไม่ตั้ง domain) — เว็บหลัก amnsure.co.th และ subdomain อื่นอ่าน/เขียนทับไม่ได้
+    // https ใช้ชื่อขึ้นต้น __Host- ซึ่งเบราว์เซอร์บังคับว่าต้องมาจาก host นี้โดยตรงเท่านั้น
+    session_name($secure ? '__Host-AMNSURESESS' : 'AMNSURESESS');
     if (PHP_VERSION_ID >= 70300) {
         session_set_cookie_params([
             'lifetime' => 0,
             'path' => '/',
+            'domain' => '',
             'secure' => $secure,
             'httponly' => true,
             'samesite' => 'Lax',

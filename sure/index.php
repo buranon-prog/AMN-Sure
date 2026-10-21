@@ -89,6 +89,11 @@ try {
     }
 } catch (RedirectSignal $r) {
     // ส่ง header Location ไปแล้ว
+} catch (ForeignDatabaseError $e) {
+    // ไม่แตะตารางของเว็บ/ระบบอื่นเด็ดขาด — ให้ผู้ดูแลแก้ app/config.php
+    app_log('DB GUARD: ' . $e->getMessage());
+    http_response_code(503);
+    render('errors/error', ['title' => 'ตั้งค่าฐานข้อมูลไม่ถูกต้อง', 'message' => 'app/config.php ชี้ไปที่ฐานข้อมูลที่ไม่ใช่ของ AMN SURE ระบบหยุดทำงานเพื่อไม่ให้ข้อมูลปนกับเว็บอื่น กรุณาแจ้งผู้ดูแลระบบ'], 'layout_plain');
 } catch (Throwable $e) {
     $ref = substr(uuid(), 0, 8);
     app_log("ERROR $ref: " . get_class($e) . ': ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString());

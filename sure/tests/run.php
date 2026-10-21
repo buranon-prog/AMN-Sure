@@ -553,6 +553,37 @@ eq(setting('schema_version'), '2', 'schema_version = 2');
 schema_upgrade();
 ok(true, 'รันซ้ำได้ไม่ error');
 
+section('ฐานข้อมูลแยก — ไม่ปนกับเว็บหลัก / ระบบอื่น');
+eq(setting('app_id'), APP_DB_ID, 'ติดตั้งแล้วมีเครื่องหมาย app_id ของ AMN SURE');
+$iso = db_isolation_problems($pdo);
+ok((bool) array_filter($iso, function ($m) { return strpos($m, 'มีตารางอยู่แล้ว') !== false; }), 'ตัวติดตั้งปฏิเสธฐานข้อมูลที่มีตารางอยู่แล้ว');
+$visible = array_diff($pdo->query('SHOW DATABASES')->fetchAll(PDO::FETCH_COLUMN), ['information_schema', 'performance_schema', config('db')['name']]);
+if ($visible) ok((bool) array_filter($iso, function ($m) { return strpos($m, 'เข้าถึงฐานข้อมูลอื่นได้') !== false; }), 'ตัวติดตั้งปฏิเสธผู้ใช้ฐานข้อมูลที่เข้าถึงฐานข้อมูลอื่นได้');
+if (config('isolated_db')) {
+    // ฐานข้อมูลว่าง + ผู้ใช้ที่มีสิทธิ์เฉพาะฐานข้อมูลนั้น (แบบที่คู่มือให้สร้างใน cPanel) → ผ่าน
+    $isoPdo = db_connect(config('isolated_db'));
+    foreach ($isoPdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN) as $tbl) $isoPdo->exec('DROP TABLE `' . $tbl . '`');
+    eq(db_isolation_problems($isoPdo), [], 'ฐานข้อมูลว่าง + ผู้ใช้เฉพาะฐานข้อมูลนี้ → ติดตั้งได้');
+}
+db_assert_ours();
+ok(true, 'ฐานข้อมูลของ SURE ผ่านการตรวจทุก request');
+q("DELETE FROM sure_settings WHERE setting_key = 'app_id'");
+unset($GLOBALS['__SETTINGS']);
+db_assert_ours();
+unset($GLOBALS['__SETTINGS']);
+eq(setting('app_id'), APP_DB_ID, 'ฐานข้อมูลจากเวอร์ชัน 1.0.0 (ไม่มีเครื่องหมาย) → ตรวจตารางแล้วใส่เครื่องหมายให้');
+setting_set('app_id', 'wordpress');
+unset($GLOBALS['__SETTINGS']);
+throws(function () { schema_upgrade(); }, ForeignDatabaseError::class, 'เครื่องหมายไม่ใช่ของ SURE → หยุด ไม่อัปเกรด/แก้ตาราง');
+setting_set('app_id', APP_DB_ID);
+db()->exec('RENAME TABLE sure_settings TO sure_settings_hidden');
+unset($GLOBALS['__SETTINGS']);
+throws(function () { schema_upgrade(); }, ForeignDatabaseError::class, 'ฐานข้อมูลของเว็บอื่น (ไม่มี sure_settings) → หยุดก่อน ALTER ตาราง users ของเว็บนั้น');
+db()->exec('RENAME TABLE sure_settings_hidden TO sure_settings');
+unset($GLOBALS['__SETTINGS']);
+db_assert_ours();
+ok(true, 'คืนค่าแล้วกลับมาใช้งานได้');
+
 section('ส่งอีเมลผ่าน SMTP (server ทดสอบ: ไม่เข้ารหัส / STARTTLS / SSL)');
 $certFile = sys_get_temp_dir() . '/sure-test-cert-' . getmypid() . '.pem';
 $key = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);

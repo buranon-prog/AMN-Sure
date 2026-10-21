@@ -113,8 +113,12 @@ if (app_installed()) {
         } catch (PDOException $e) {
             throw new AppError('เชื่อมต่อฐานข้อมูลไม่ได้: ตรวจชื่อฐานข้อมูล ชื่อผู้ใช้ และรหัสผ่าน (' . $e->getCode() . ')');
         }
-        $existing = (int) $pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'users'")->fetchColumn();
-        if ($existing) throw new AppError('ฐานข้อมูลนี้มีตารางของระบบอยู่แล้ว — ถ้าต้องการติดตั้งใหม่ให้ลบตารางเดิมใน phpMyAdmin ก่อน หรือใช้ฐานข้อมูลใหม่');
+        // ฐานข้อมูลแยก: ต้องว่างเปล่า + ผู้ใช้ฐานข้อมูลเข้าถึงได้เฉพาะฐานข้อมูลนี้ (ไม่ปนกับเว็บหลัก/ระบบอื่น)
+        $problems = db_isolation_problems($pdo);
+        if ($problems) {
+            foreach ($problems as $problem) $errors[] = $problem;
+            throw new AppError('ยังไม่ได้ติดตั้ง — ฐานข้อมูลต้องแยกสำหรับ AMN SURE เท่านั้น (ดูขั้นที่ 2 ในคู่มือ)');
+        }
 
         install_schema($pdo);
         db_set($pdo);
@@ -209,7 +213,8 @@ ob_start();
   <form method="post" action="install.php" class="card">
     <?= csrf_field() ?>
     <h2>2. ฐานข้อมูล MySQL</h2>
-    <p class="muted">สร้างฐานข้อมูลและผู้ใช้ใน cPanel → <b>MySQL Database Wizard</b> ก่อน (ให้สิทธิ์ ALL PRIVILEGES)</p>
+    <p class="muted">สร้างฐานข้อมูล<b>ใหม่</b>และผู้ใช้<b>ใหม่</b>ใน cPanel → <b>MySQL Database Wizard</b> ก่อน (ให้สิทธิ์ ALL PRIVILEGES)
+      — ห้ามใช้ฐานข้อมูลหรือผู้ใช้ของเว็บหลัก/ระบบอื่น ตัวติดตั้งจะไม่ยอมติดตั้งถ้าฐานข้อมูลมีตารางอยู่แล้ว หรือผู้ใช้เข้าถึงฐานข้อมูลอื่นได้</p>
     <div class="form-grid">
       <?= f_input('db_host', 'Host', $_POST['db_host'] ?? 'localhost', ['required' => true]) ?>
       <?= f_input('db_port', 'Port', $_POST['db_port'] ?? '3306') ?>

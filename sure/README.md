@@ -51,6 +51,9 @@ sure/
 - ลืมรหัสผ่าน: Manager กด "ส่งลิงก์ตั้งรหัสผ่านใหม่" (รหัสเดิมใช้ไม่ได้ทันที + หลุดทุกเครื่อง) — ไม่มีการรีเซ็ตเองทางอีเมล
 - เก็บเฉพาะ HMAC ของลิงก์/รหัส (`app_key` ใน config) ในตาราง `auth_tokens` · ลิงก์สร้างจาก `base_url` ใน config ไม่ใช้ Host header
 - `app/config.php`: `base_url`, `app_key`, `mail` (ดู `app/lib/mailer.php`), `email_2fa` (false = ปิดชั่วคราวเมื่ออีเมลเสีย)
+- **ฐานข้อมูลแยก**: `install.php` ไม่ยอมติดตั้งถ้าฐานข้อมูลมีตารางอยู่แล้ว หรือผู้ใช้ฐานข้อมูลเข้าถึงฐานข้อมูลอื่น/มีสิทธิ์ทั้งเซิร์ฟเวอร์ (`db_isolation_problems()`)
+  · ทุก request ตรวจเครื่องหมาย `app_id` ใน `sure_settings` ก่อนแตะตาราง (`db_assert_ours()`) — config ชี้ฐานข้อมูลอื่น → หยุด (503)
+  · cookie `__Host-AMNSURESESS` (https) ผูกกับ subdomain นี้อย่างเดียว
 - ระบบที่ติดตั้งเวอร์ชัน 1.0.0 ไว้แล้ว: ฐานข้อมูลอัปเกรดเองครั้งแรกที่เปิดหน้าเว็บ (`schema_upgrade()`) — ต้องเพิ่มค่าใน config เอง (INSTALL-TH.md)
 
 ## Seed ข้อมูลตัวอย่าง (dev/ทดสอบเท่านั้น)
@@ -69,7 +72,7 @@ php tools/seed-demo.php <อีเมล Manager>
 php -S 127.0.0.1:8090 -t sure                      # เปิด http://127.0.0.1:8090/install.php แล้วติดตั้ง
 php sure/tools/seed-demo.php <อีเมล Manager>       # ข้อมูลตัวอย่าง
 
-cp sure/tests/config.test.sample.php sure/tests/config.test.php   # ใส่ฐานข้อมูลทดสอบว่าง ๆ
+cp sure/tests/config.test.sample.php sure/tests/config.test.php   # ใส่ฐานข้อมูลทดสอบว่าง ๆ (+ isolated_db ถ้ามี)
 php sure/tests/run.php                             # ข้อ 1–8 + สิทธิ์ (ล้างฐานข้อมูลทดสอบทุกครั้ง)
 # ข้อ 9 + ยืนยันทางอีเมล ผ่าน HTTP (ต้อง seed ก่อน) — server ต้องส่งอีเมลเป็นไฟล์ ('mail' => ['transport' => 'file', 'dir' => …])
 # หรือผ่าน SMTP ปลอม: php sure/tests/fake_smtp.php 2526 /tmp/mail plain  แล้วตั้ง SMTP host 127.0.0.1 port 2526 encryption none
