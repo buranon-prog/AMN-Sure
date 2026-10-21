@@ -1,16 +1,20 @@
 <?php
 // End-to-end test ผ่าน HTTP จริง (สเปกหัวข้อ 12 ข้อ 9 — ตรวจ payload จริง ไม่ใช่แค่หน้าจอ)
 // เตรียม: ติดตั้งระบบ (install.php) + ใส่ข้อมูลตัวอย่าง (php tools/seed-demo.php <manager>) แล้วรัน
-//   php tests/http_test.php http://127.0.0.1:8090 <manager-username> <manager-password>
-// test จะสร้างบัญชีพนักงาน 3 แบบผ่านหน้า "บัญชีผู้ใช้" แล้วตรวจทุกหน้า ทุก action และทุก export ในนามแต่ละบัญชี
+//   php tests/http_test.php http://127.0.0.1:8090 <manager-email> <manager-password> <โฟลเดอร์อีเมล>
+// <โฟลเดอร์อีเมล> = ที่ server เขียนอีเมลที่ส่ง ('mail' => ['transport' => 'file', 'dir' => …] หรือ tests/fake_smtp.php)
+// test จะสร้างบัญชีพนักงาน 3 แบบผ่านหน้า "บัญชีผู้ใช้" (เปิดใช้งานด้วยลิงก์ในอีเมล เข้าสู่ระบบด้วยรหัสทางอีเมล)
+// แล้วตรวจทุกหน้า ทุก action และทุก export ในนามแต่ละบัญชี
 
-if ($argc < 4) {
-    fwrite(STDERR, "วิธีใช้: php tests/http_test.php <base-url> <manager-username> <manager-password>\n");
+require __DIR__ . '/mailbox.php';
+if ($argc < 5) {
+    fwrite(STDERR, "วิธีใช้: php tests/http_test.php <base-url> <manager-email> <manager-password> <โฟลเดอร์อีเมล>\n");
     exit(2);
 }
 $base = rtrim($argv[1], '/');
 $mUser = $argv[2];
 $mPass = $argv[3];
+$MAILDIR = $argv[4];
 $tmp = sys_get_temp_dir() . '/sure-http-' . getmypid();
 date_default_timezone_set('Asia/Bangkok');
 $today = date('Y-m-d');
@@ -63,19 +67,37 @@ class Client
     }
     function flashError() { return preg_match('/class="flash error">([^<]*)/', $this->last['body'], $m) ? html_entity_decode($m[1]) : null; }
     function flashSuccess() { return preg_match('/class="flash success">([^<]*)/', $this->last['body'], $m) ? html_entity_decode($m[1]) : null; }
-    function login($user, $pw)
+    /** เข้าสู่ระบบ 2 ขั้นตอน: อีเมล + รหัสผ่าน → อ่านรหัส 6 หลักจากอีเมล → ใส่รหัส */
+    function login($email, $pw)
     {
+        global $MAILDIR;
         $this->get('auth.login');
-        $r = $this->post('auth.login', ['login' => $user, 'password' => $pw]);
+        $t = microtime(true);
+        $r = $this->post('auth.login', ['login' => $email, 'password' => $pw]);
+        if (strpos((string) $r['location'], 'r=auth.verify') === false) return false;
+        $code = mailbox_code(mailbox_latest($MAILDIR, mb_strtolower($email), $t));
+        if (!$code) return false;
+        $this->get('auth.verify');
+        $r = $this->post('auth.verify', ['code' => $code]);
         if (strpos((string) $r['location'], 'r=home') === false) return false;
-        $this->req('GET', 'index.php?r=home');
-        if (strpos((string) $this->last['location'], 'auth.password') !== false) {
-            $this->follow();
-            $new = $pw . 'X9';
-            $this->post('auth.password', ['current_password' => $pw, 'new_password' => $new, 'password_confirm' => $new]);
-            $this->follow();
-        }
+        $this->follow();
         return true;
+    }
+    /** เปิดใช้งานบัญชีจากลิงก์ในอีเมล: ตั้งรหัสผ่าน → เข้าสู่ระบบทันที */
+    function activate($token, $pw)
+    {
+        $this->req('GET', 'index.php?r=auth.activate&t=' . $token);
+        if (strpos($this->last['body'], 'name="new_password"') === false) return false;
+        $r = $this->post('auth.activate', ['t' => $token, 'new_password' => $pw, 'password_confirm' => $pw]);
+        if (strpos((string) $r['location'], 'r=home') === false) return false;
+        $this->follow();
+        return true;
+    }
+    function logout()
+    {
+        $this->get('settings');
+        $this->post('auth.logout', []);
+        $this->csrf = '';
     }
     /** หน้าเรียบร้อย: 200 และไม่มีข้อความ error ของระบบ */
     function okPage($label)
@@ -126,14 +148,19 @@ ok(strpos((string) $m->last['location'], 'r=dashboard') !== false, 'Manager เ�
 $suffix = substr((string) time(), -6);
 $accounts = [];
 foreach ([['staff', 1, 1], ['viewer', 1, 0], ['noperm', 0, 0]] as [$kind, $v, $ed]) {
-    $u = $kind . $suffix;
-    $pw = 'Temp' . $suffix . 'abc';
-    $data = ['name' => "ทดสอบ $kind", 'username' => $u, 'role' => 'EMPLOYEE', 'password' => $pw, 'active' => '1'];
+    $u = $kind . $suffix . '@example.test';
+    $pw = 'Pass' . $suffix . 'abc';
+    $data = ['name' => "ทดสอบ $kind", 'email' => $u, 'role' => 'EMPLOYEE', 'active' => '1'];
     if ($v) $data['can_view'] = '1';
     if ($ed) $data['can_edit'] = '1';
+    $t = microtime(true);
     $m->post('users.save', $data);
-    ok(strpos((string) $m->last['location'], 'users.edit') !== false, "สร้างบัญชี $kind");
-    $accounts[$kind] = [$u, $pw];
+    ok(strpos((string) $m->last['location'], 'users.edit') !== false, "สร้างบัญชี $kind ด้วยอีเมล");
+    $m->follow();
+    ok(strpos((string) $m->flashSuccess(), 'ส่งลิงก์ตั้งรหัสผ่านไปที่ ' . $u) !== false, "ส่งลิงก์เปิดใช้งานให้ $kind แล้ว");
+    $tok = mailbox_token(mailbox_latest($MAILDIR, $u, $t));
+    ok($tok !== null, "$kind ได้รับลิงก์เปิดใช้งานทางอีเมล");
+    $accounts[$kind] = [$u, $pw, $tok];
 }
 
 section('Manager: ทุกหน้าเปิดได้ และตัวเลขตรงเกณฑ์');
@@ -161,10 +188,56 @@ $m->get('export.csv', ['t' => 'S']);
 ok(strpos($m->last['body'], 'กำไรขั้นต้น (บาท)') !== false, 'Manager export การขายมีคอลัมน์ Manager');
 
 // ================================================================ EMPLOYEE ดู+แก้
-[$su, $sp] = $accounts['staff'];
+// ================================================================ ยืนยันตัวตนทางอีเมล
+section('เข้าใช้ครั้งแรกด้วยลิงก์ในอีเมล + เข้าสู่ระบบด้วยรหัสทางอีเมล');
+[$su, $sp, $stok] = $accounts['staff'];
 $e = new Client($base, "$tmp/e.txt", 'staff');
+$e->get('auth.login');
+ok(strpos($e->last['body'], 'สมัคร') === false && strpos($e->last['body'], 'r=auth.first') !== false, 'หน้าเข้าสู่ระบบไม่มีปุ่มสมัคร มีเฉพาะ "เข้าใช้ครั้งแรก"');
+$e->post('auth.login', ['login' => $su, 'password' => $sp]);
+$e->follow();
+ok($e->flashError() === 'อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'ก่อนเปิดใช้งาน → เข้าสู่ระบบไม่ได้');
+$e->req('GET', 'index.php?r=auth.activate&t=' . $stok);
+ok(strpos($e->last['body'], 'ตั้งรหัสผ่าน') !== false && strpos($e->last['body'], 'ทดสอบ staff') !== false, 'ลิงก์ในอีเมลเปิดหน้าตั้งรหัสผ่าน');
+$e->post('auth.activate', ['t' => $stok, 'new_password' => 'short1', 'password_confirm' => 'short1']);
+$e->follow();
+ok(strpos((string) $e->flashError(), 'อย่างน้อย 10') !== false, 'รหัสผ่านสั้น → ปฏิเสธ');
+ok($e->activate($stok, $sp), 'ตั้งรหัสผ่านจากลิงก์ → เข้าสู่ระบบทันที');
+$e->req('GET', 'index.php?r=auth.activate&t=' . $stok);
+ok(strpos($e->last['body'], 'ลิงก์นี้ใช้ไม่ได้แล้ว') !== false, 'ลิงก์ใช้ซ้ำไม่ได้');
+$e->logout();
+$e->get('auth.login');
+$t = microtime(true);
+$e->post('auth.login', ['login' => $su, 'password' => $sp]);
+ok(strpos((string) $e->last['location'], 'r=auth.verify') !== false, 'รหัสผ่านถูก → ไปหน้ายืนยันทางอีเมล (ยังไม่เข้าสู่ระบบ)');
+$e->get('customers');
+ok($e->last['status'] === 303 && strpos((string) $e->last['location'], 'auth.login') !== false, 'ระหว่างรอรหัส เปิดหน้าข้อมูลไม่ได้');
+$e->get('auth.verify');
+ok(strpos($e->last['body'], 's•') !== false && strpos($e->last['body'], '@example.test') !== false && strpos($e->last['body'], $su) === false, 'หน้ายืนยันแสดงอีเมลแบบซ่อนบางส่วน');
+$code = mailbox_code(mailbox_latest($MAILDIR, $su, $t));
+ok($code !== null, 'ได้รับรหัส 6 หลักทางอีเมล');
+$e->post('auth.verify', ['code' => $code === '000000' ? '111111' : '000000']);
+$e->follow();
+ok(strpos((string) $e->flashError(), 'รหัสไม่ถูกต้อง') === 0, 'รหัสผิด → ปฏิเสธ');
+$e->post('auth.resend', []);
+$e->follow();
+ok(strpos((string) $e->flashError(), 'ส่งรหัสใหม่ได้อีกครั้งใน') === 0, 'ส่งรหัสใหม่ทันทีไม่ได้ (ต้องรอ 60 วินาที)');
+$e->post('auth.verify', ['code' => $code]);
+ok(strpos((string) $e->last['location'], 'r=home') !== false, 'รหัสถูก → เข้าสู่ระบบ');
+$e->follow();
+$e->logout();
+$e->get('auth.verify');
+ok($e->last['status'] === 303 && strpos((string) $e->last['location'], 'auth.login') !== false, 'ไม่มีการเข้าสู่ระบบค้างอยู่ → หน้ายืนยันพาไปหน้าเข้าสู่ระบบ');
+$x0 = new Client($base, "$tmp/x0.txt", 'anon');
+$x0->get('auth.first');
+$x0->post('auth.first', ['email' => 'nobody' . $suffix . '@example.test']);
+$a1 = $x0->last['location'];
+$x0->post('auth.first', ['email' => $su]);
+ok($a1 !== null && $a1 === $x0->last['location'] && strpos((string) $a1, 'sent=1') !== false, 'หน้าเข้าใช้ครั้งแรกตอบเหมือนกันทุกอีเมล (ไม่บอกว่าอีเมลไหนมีบัญชี)');
+ok(mailbox_latest($MAILDIR, 'nobody' . $suffix . '@example.test') === null, 'อีเมลที่ไม่มีบัญชี → ไม่ได้รับอะไร (สมัครเองไม่ได้)');
+
 section('EMPLOYEE (ดู+แก้): หน้า Manager ถูกปฏิเสธ');
-ok($e->login($su, $sp), 'พนักงานเข้าสู่ระบบได้ (บังคับเปลี่ยนรหัสครั้งแรก)');
+ok($e->login($su, $sp), 'พนักงานเข้าสู่ระบบด้วยรหัสทางอีเมลได้');
 $e->get('home');
 ok(strpos((string) $e->last['location'], 'r=search') !== false, 'พนักงานเข้าแล้วไปหน้าค้นหา');
 foreach (['costs', 'costs.new', 'profit', 'dashboard', 'users', 'users.new'] as $p) {
@@ -245,7 +318,7 @@ $e->post('costs.save', ['_pk' => 'SURE26001', 'cost' => '1']);
 ok($e->last['status'] === 403, 'แก้ต้นทุน → 403');
 $e->post('costs.delete', ['_pk' => 'SURE26001']);
 ok($e->last['status'] === 403, 'ลบต้นทุน → 403');
-$e->post('users.save', ['name' => 'แฮก', 'username' => 'hack' . $suffix, 'role' => 'MANAGER', 'password' => 'Hack12345678']);
+$e->post('users.save', ['name' => 'แฮก', 'email' => 'hack' . $suffix . '@example.test', 'role' => 'MANAGER', 'active' => '1']);
 ok($e->last['status'] === 403, 'สร้างบัญชี Manager → 403');
 $m->get('sales.edit', ['id' => 'SO26001']);
 ok(strpos($m->last['body'], 'SO26001') !== false, 'ข้อมูลยังอยู่ครบหลังพนักงานพยายามลบ');
@@ -332,8 +405,10 @@ no_leak($e, 'หน้าเครื่องหลังขาย');
 
 // ================================================================ ดูอย่างเดียว
 section('EMPLOYEE ดูอย่างเดียว');
-[$vu, $vp] = $accounts['viewer'];
+[$vu, $vp, $vtok] = $accounts['viewer'];
 $v = new Client($base, "$tmp/v.txt", 'viewer');
+ok($v->activate($vtok, $vp), 'viewer เปิดใช้งานจากลิงก์ในอีเมลได้');
+$v->logout();
 ok($v->login($vu, $vp), 'viewer เข้าสู่ระบบได้');
 $v->get('customers');
 $v->okPage('customers');
@@ -352,8 +427,10 @@ no_leak($v, 'export sales');
 
 // ================================================================ ไม่มีสิทธิ์ SURE
 section('EMPLOYEE ที่ไม่มีสิทธิ์ SURE');
-[$nu, $np] = $accounts['noperm'];
+[$nu, $np, $ntok] = $accounts['noperm'];
 $n = new Client($base, "$tmp/n.txt", 'noperm');
+ok($n->activate($ntok, $np), 'noperm เปิดใช้งานจากลิงก์ในอีเมลได้');
+$n->logout();
 ok($n->login($nu, $np), 'noperm เข้าสู่ระบบได้');
 $n->get('home');
 $n->okPage('home');
@@ -381,11 +458,19 @@ foreach (['customers', 'costs', 'dashboard', 'export.csv'] as $p) {
 $e->req('POST', 'index.php?r=customers.save', ['id' => 'SURE999', 'name' => 'x']);
 ok($e->last['status'] === 403, 'POST ไม่มี CSRF token → 403');
 $m->get('users');
-preg_match('/r=users\.edit&amp;id=([0-9a-f-]{36})"><b>ทดสอบ viewer/', $m->last['body'], $mm);
+preg_match('/r=users\.edit&amp;id=([0-9a-f-]{36})"><b>ทดสอบ viewer<\/b><\/a><\/td><td>' . preg_quote($vu, '/') . '</', $m->last['body'], $mm);
 $vid = $mm[1] ?? '';
-$m->post('users.save', ['id' => $vid, 'name' => 'ทดสอบ viewer', 'username' => $vu, 'role' => 'EMPLOYEE', 'can_view' => '1']);
+$m->post('users.save', ['id' => $vid, 'name' => 'ทดสอบ viewer', 'email' => $vu, 'role' => 'EMPLOYEE', 'can_view' => '1']);
 $v->get('customers');
 ok($v->last['status'] === 303 && strpos((string) $v->last['location'], 'auth.login') !== false, 'Manager ปิดบัญชี → ผู้ใช้ถูกออกจากระบบทันที');
+$m->get('users');
+preg_match('/r=users\.edit&amp;id=([0-9a-f-]{36})"><b>ทดสอบ noperm<\/b><\/a><\/td><td>' . preg_quote($nu, '/') . '</', $m->last['body'], $mm);
+$m->post('users.reset', ['id' => $mm[1] ?? '']);
+$m->follow();
+ok(strpos((string) $m->flashSuccess(), 'ส่งลิงก์ตั้งรหัสผ่านไปที่ ' . $nu) !== false, 'Manager ส่งลิงก์ตั้งรหัสผ่านใหม่ทางอีเมล');
+$n->get('home');
+ok($n->last['status'] === 303 && strpos((string) $n->last['location'], 'auth.login') !== false, 'ส่งลิงก์ตั้งรหัสใหม่ → ผู้ใช้ถูกออกจากระบบทันที');
+ok(!$n->login($nu, $np), 'รหัสผ่านเดิมใช้ไม่ได้แล้ว');
 $e->get('customers');
 ok(preg_match("/Content-Security-Policy: default-src 'self'/i", $e->last['headers']) === 1, 'มี Content-Security-Policy');
 ok(stripos($e->last['headers'], 'X-Frame-Options: DENY') !== false, 'มี X-Frame-Options');

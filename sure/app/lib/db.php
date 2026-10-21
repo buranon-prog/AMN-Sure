@@ -2,7 +2,7 @@
 // การเข้าถึงฐานข้อมูล: PDO + prepared statement เท่านั้น, audit fields, transaction, ค่าตั้งต้น
 
 // ตารางที่ไม่มีคอลัมน์ created_at/created_by/updated_at/updated_by
-const DB_NO_AUDIT_COLUMNS = ['login_attempts'];
+const DB_NO_AUDIT_COLUMNS = ['login_attempts', 'auth_tokens'];
 
 function db(): PDO
 {

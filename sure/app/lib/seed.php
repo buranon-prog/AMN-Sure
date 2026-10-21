@@ -24,7 +24,41 @@ function seed_base_data(): void
         }
     }
     if (setting('vat_rate') === null) setting_set('vat_rate', '7');
+    if (setting('schema_version') === null) setting_set('schema_version', (string) SCHEMA_VERSION);
     options_reset();
+}
+
+/** เวอร์ชันโครงสร้างฐานข้อมูลของโค้ดนี้ (2 = ยืนยันตัวตนทางอีเมล) */
+const SCHEMA_VERSION = 2;
+
+/**
+ * อัปเกรดฐานข้อมูลของระบบที่ติดตั้งไว้แล้วให้ตรงกับโค้ดเวอร์ชันนี้ (รันอัตโนมัติ ครั้งเดียว)
+ * v1 → v2: เพิ่ม users.activated_at + ตาราง auth_tokens · บัญชีเดิมที่มีรหัสผ่านอยู่แล้วถือว่าเปิดใช้งานแล้ว
+ */
+function schema_upgrade(): void
+{
+    $v = (int) (setting('schema_version') ?? 1);
+    if ($v >= SCHEMA_VERSION) return;
+    if ($v < 2) {
+        $has = (int) val("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'activated_at'");
+        if (!$has) db()->exec('ALTER TABLE users ADD COLUMN activated_at DATETIME NULL AFTER last_login_at');
+        db()->exec("CREATE TABLE IF NOT EXISTS auth_tokens (
+  id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id CHAR(36) NOT NULL,
+  purpose VARCHAR(20) NOT NULL,
+  secret_hash CHAR(64) NOT NULL,
+  attempts INT NOT NULL DEFAULT 0,
+  expires_at DATETIME NOT NULL,
+  used_at DATETIME NULL,
+  ip VARCHAR(45) NULL,
+  created_at DATETIME(6) NOT NULL,
+  KEY ix_auth_tokens_user (user_id, purpose, created_at),
+  KEY ix_auth_tokens_hash (secret_hash),
+  CONSTRAINT fk_auth_tokens_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        q('UPDATE users SET activated_at = created_at WHERE activated_at IS NULL');
+    }
+    setting_set('schema_version', (string) SCHEMA_VERSION);
 }
 
 function valid_username(string $u): bool
@@ -46,6 +80,7 @@ function create_user_raw(string $username, ?string $email, string $name, string 
         'password_hash' => password_hash($password, PASSWORD_DEFAULT),
         'must_change_password' => $mustChange ? 1 : 0,
         'session_version' => 1,
+        'activated_at' => now(),
     ]);
     set_user_permission($id, $canView, $canEdit);
     return $id;

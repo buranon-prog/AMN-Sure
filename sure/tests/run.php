@@ -9,6 +9,7 @@ require __DIR__ . '/../app/bootstrap.php';
 require __DIR__ . '/../tools/demo_data.php';
 require __DIR__ . '/../app/controllers/dashboard.php';
 require __DIR__ . '/../app/controllers/profit.php';
+require __DIR__ . '/mailbox.php';
 set_error_handler(function ($severity, $message, $file, $line) {
     if (!(error_reporting() & $severity)) return false;
     if ($severity & (E_DEPRECATED | E_USER_DEPRECATED)) return true;
@@ -21,6 +22,13 @@ if (!is_file($cfgFile)) {
     exit(2);
 }
 $GLOBALS['APP_CONFIG'] = require $cfgFile;
+// อีเมลในการทดสอบเขียนเป็นไฟล์ (ไม่ส่งออกจริง)
+$MAILDIR = sys_get_temp_dir() . '/sure-test-mail-' . getmypid();
+@mkdir($MAILDIR, 0777, true);
+$GLOBALS['APP_CONFIG']['mail'] = ['transport' => 'file', 'dir' => $MAILDIR, 'from' => 'noreply@example.test', 'from_name' => 'AMN SURE'];
+$GLOBALS['APP_CONFIG']['base_url'] = 'https://sure.example.test/';
+$GLOBALS['APP_CONFIG']['app_key'] = 'test-app-key';
+$_SESSION = [];
 $pdo = db_connect(config('db'));
 db_set($pdo);
 $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
@@ -382,7 +390,8 @@ foreach (['C' => 'SURE001', 'S' => 'SO26001', 'P' => 'RC26-0001', 'D' => 'SURE26
 }
 throws(function () { option_add('ctype', 'x', null); }, ForbiddenError::class, 'EMPLOYEE แก้รายการตัวเลือกไม่ได้');
 throws(function () { vat_set('8'); }, ForbiddenError::class, 'EMPLOYEE แก้ VAT ไม่ได้');
-throws(function () { user_save(null, ['username' => 'x1', 'name' => 'x', 'role' => ROLE_MANAGER, 'password' => 'Passw0rd123']); }, ForbiddenError::class, 'EMPLOYEE สร้างบัญชีไม่ได้');
+throws(function () { user_save(null, ['email' => 'x1@example.test', 'name' => 'x', 'role' => ROLE_MANAGER]); }, ForbiddenError::class, 'EMPLOYEE สร้างบัญชีไม่ได้');
+throws(function () { user_send_password_link('x'); }, ForbiddenError::class, 'EMPLOYEE ส่งลิงก์ตั้งรหัสผ่านไม่ได้');
 $eid = rec_save('C', null, ['id' => next_code('C')] + $base['C']);
 ok(rec_find('C', $eid) !== null, 'EMPLOYEE เพิ่มลูกค้าได้');
 eq(ds()['C'][$eid]['_created_by'], $staff, 'audit: บันทึกโดย = พนักงานคนนี้');
@@ -398,20 +407,189 @@ throws(function () { require_sure_view(); }, ForbiddenError::class, 'ไม่�
 throws(function () { require_table_view('C'); }, ForbiddenError::class, 'ไม่มีสิทธิ์ SURE → ดูตารางลูกค้าไม่ได้');
 
 as_user($manager);
-section('บัญชีผู้ใช้');
-$nu = user_save(null, ['username' => 'NewStaff', 'name' => 'พนักงานใหม่', 'role' => ROLE_EMPLOYEE, 'active' => 1, 'can_view' => 1, 'can_edit' => 0, 'password' => 'Temp12345678']);
+section('บัญชีผู้ใช้ + เปิดใช้งานทางอีเมล (สมัครเองไม่ได้)');
+$t0 = microtime(true);
+$r = user_save(null, ['email' => 'New.Staff@Example.test', 'name' => 'พนักงานใหม่', 'role' => ROLE_EMPLOYEE, 'active' => 1, 'can_view' => 1, 'can_edit' => 0]);
+$nu = $r['id'];
+ok($r['invite'], 'บัญชีใหม่ → ต้องส่งลิงก์เปิดใช้งาน');
 $row = one('SELECT * FROM users WHERE id = ?', [$nu]);
-eq($row['username'], 'newstaff', 'ชื่อผู้ใช้เก็บเป็นตัวเล็ก');
-eq((int) $row['must_change_password'], 1, 'บัญชีใหม่ต้องเปลี่ยนรหัสตอนเข้าครั้งแรก');
+eq($row['email'], 'new.staff@example.test', 'อีเมลเก็บเป็นตัวเล็ก');
+eq($row['username'], 'new.staff', 'ชื่อผู้ใช้ภายในสร้างจากอีเมล');
+ok($row['activated_at'] === null, 'บัญชีใหม่ยังไม่เปิดใช้งาน');
 eq((int) val('SELECT can_edit FROM user_permissions WHERE user_id = ?', [$nu]), 0, 'สิทธิ์ SURE ตามที่กำหนด');
-throws(function () { user_save(null, ['username' => 'newstaff', 'name' => 'ซ้ำ', 'role' => ROLE_EMPLOYEE, 'password' => 'Temp12345678']); }, AppError::class, 'ชื่อผู้ใช้ซ้ำไม่ได้');
-throws(function () { user_save(null, ['username' => 'weak', 'name' => 'x', 'role' => ROLE_EMPLOYEE, 'password' => 'short']); }, AppError::class, 'รหัสผ่านสั้นไม่ได้');
-throws(function () use ($manager) { user_save($manager, ['username' => 'manager', 'name' => 'Manager', 'role' => ROLE_EMPLOYEE, 'active' => 1]); }, AppError::class, 'ลดสิทธิ์ตัวเองไม่ได้');
+throws(function () { user_save(null, ['email' => 'new.staff@example.test', 'name' => 'ซ้ำ', 'role' => ROLE_EMPLOYEE]); }, AppError::class, 'อีเมลซ้ำไม่ได้', 'อีเมลนี้มีบัญชีอยู่แล้ว');
+throws(function () { user_save(null, ['name' => 'ไม่มีอีเมล', 'role' => ROLE_EMPLOYEE]); }, AppError::class, 'อีเมลบังคับ', 'อีเมล');
+throws(function () { user_save(null, ['email' => 'not-an-email', 'name' => 'x', 'role' => ROLE_EMPLOYEE]); }, AppError::class, 'อีเมลผิดรูปแบบ');
+throws(function () use ($manager) { user_save($manager, ['email' => 'manager@example.test', 'name' => 'Manager', 'role' => ROLE_EMPLOYEE, 'active' => 1]); }, AppError::class, 'ลดสิทธิ์ตัวเองไม่ได้');
+eq(password_step('new.staff@example.test', 'anything123')['error'] ?? null, 'อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'ยังไม่เปิดใช้งาน → เข้าสู่ระบบไม่ได้');
+
+issue_activation($row);
+$mail = mailbox_latest($MAILDIR, 'new.staff@example.test', $t0);
+eq($mail['subject'] ?? null, 'เปิดใช้งานบัญชี AMN SURE', 'ส่งอีเมลเปิดใช้งาน (หัวเรื่องภาษาไทยอ่านได้)');
+$tok = mailbox_token($mail);
+ok($tok && strpos($mail['text'], 'https://sure.example.test/index.php?r=auth.activate&t=' . $tok) !== false, 'ลิงก์ใช้ที่อยู่เว็บจากการตั้งค่า');
+eq((int) val("SELECT COUNT(*) FROM auth_tokens WHERE secret_hash = ? OR secret_hash = ?", [$tok, hash('sha256', $tok)]), 0, 'ฐานข้อมูลไม่เก็บลิงก์ตัวจริง');
+ok(find_activation($tok) !== null, 'ลิงก์ใช้ได้');
+throws(function () use ($tok) { complete_activation($tok, 'short1', 'short1'); }, AppError::class, 'รหัสผ่านสั้น → ปฏิเสธ', 'อย่างน้อย 10');
+throws(function () use ($tok) { complete_activation($tok, 'GoodPass123', 'Other1234567'); }, AppError::class, 'ยืนยันรหัสไม่ตรง → ปฏิเสธ', 'ไม่ตรงกัน');
+$u = complete_activation($tok, 'GoodPass123', 'GoodPass123');
+ok($u['activated_at'] !== null, 'ตั้งรหัสผ่านจากลิงก์ → เปิดใช้งานแล้ว');
+throws(function () use ($tok) { complete_activation($tok, 'GoodPass123', 'GoodPass123'); }, AppError::class, 'ลิงก์ใช้ได้ครั้งเดียว', 'ใช้ไม่ได้แล้ว');
+$ex = create_user_invited('expire@example.test', 'ทดสอบหมดอายุ', ROLE_EMPLOYEE, true, false);
+$exRow = one('SELECT * FROM users WHERE id = ?', [$ex]);
+issue_activation($exRow);
+$tokA = mailbox_token(mailbox_latest($MAILDIR, 'expire@example.test'));
+array_map('unlink', glob($MAILDIR . '/*.eml'));
+issue_activation($exRow);
+$tokB = mailbox_token(mailbox_latest($MAILDIR, 'expire@example.test'));
+ok($tokA !== $tokB && find_activation($tokA) === null && find_activation($tokB) !== null, 'ออกลิงก์ใหม่ → ลิงก์เก่าใช้ไม่ได้');
+q("UPDATE auth_tokens SET expires_at = ? WHERE user_id = ? AND purpose = 'activate'", ['2000-01-01 00:00:00', $ex]);
+ok(find_activation($tokB) === null, 'ลิงก์เกิน ' . ACTIVATION_HOURS . ' ชั่วโมง → ใช้ไม่ได้');
+ok(find_activation('abc') === null && find_activation(str_repeat('a', 43)) === null, 'ลิงก์มั่ว → ใช้ไม่ได้');
+
+section('ยืนยันทางอีเมลทุกครั้งที่เข้าสู่ระบบ');
+$_SESSION = [];
+eq(password_step('new.staff@example.test', 'WrongPass123')['error'] ?? null, 'อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'รหัสผ่านผิด → ปฏิเสธ');
+$ps = password_step('NEW.STAFF@example.test', 'GoodPass123');
+ok(isset($ps['user']), 'รหัสผ่านถูก (อีเมลตัวพิมพ์ใหญ่ก็ได้)');
+array_map('unlink', glob($MAILDIR . '/*.eml'));
+start_login_challenge($ps['user']);
+ok(empty($_SESSION['uid']) && !empty($_SESSION['mfa']), 'รหัสผ่านถูกแล้วยังไม่เข้าสู่ระบบ — รอรหัสจากอีเมล');
+$cmail = mailbox_latest($MAILDIR, 'new.staff@example.test');
+$code = mailbox_code($cmail);
+ok((bool) preg_match('/^\d{6}$/', (string) $code), 'ส่งรหัส 6 หลักทางอีเมล');
+eq($cmail['subject'] ?? null, 'รหัสยืนยันเข้าสู่ระบบ AMN SURE', 'หัวเรื่องอีเมลรหัสยืนยัน');
+$bad = $code === '000000' ? '111111' : '000000';
+eq(verify_login_code($bad), 'รหัสไม่ถูกต้อง (ลองได้อีก 4 ครั้ง)', 'รหัสผิด → ปฏิเสธ');
+ok(empty($_SESSION['uid']), 'รหัสผิดยังไม่เข้าสู่ระบบ');
+throws(function () { resend_login_code(); }, AppError::class, 'ส่งรหัสใหม่ต้องรอ ' . LOGIN_CODE_RESEND_SECONDS . ' วินาที', 'ส่งรหัสใหม่ได้อีกครั้งใน');
+eq(verify_login_code(substr($code, 0, 3) . ' ' . substr($code, 3)), null, 'รหัสถูก (มีช่องว่างก็ได้) → เข้าสู่ระบบ');
+eq($_SESSION['uid'] ?? null, $nu, 'session เป็นของผู้ใช้คนนี้');
+ok(empty($_SESSION['mfa']), 'ล้างสถานะรอยืนยัน');
+eq(verify_login_code($code), 'หมดเวลายืนยัน กรุณาเข้าสู่ระบบใหม่', 'ใช้รหัสซ้ำไม่ได้');
+
+$_SESSION = [];
+start_login_challenge($u);
+for ($i = 0; $i < LOGIN_CODE_MAX_TRIES - 1; $i++) verify_login_code($bad);
+eq(verify_login_code($bad), 'ใส่รหัสผิดเกินกำหนด กรุณาเข้าสู่ระบบใหม่', 'รหัสผิดครบ ' . LOGIN_CODE_MAX_TRIES . ' ครั้ง → ต้องเริ่มใหม่');
+ok(empty($_SESSION['mfa']) && empty($_SESSION['uid']), 'ล้างสถานะรอยืนยัน ไม่เข้าสู่ระบบ');
+ok(strpos(password_step('new.staff@example.test', 'GoodPass123')['error'] ?? '', 'หลายครั้งเกินไป') !== false, 'รหัสยืนยันผิดนับรวมในการล็อกบัญชี 15 นาที');
+q('DELETE FROM login_attempts');
+
+$_SESSION = [];
+array_map('unlink', glob($MAILDIR . '/*.eml'));
+start_login_challenge($u);
+$old = mailbox_code(mailbox_latest($MAILDIR, 'new.staff@example.test'));
+array_map('unlink', glob($MAILDIR . '/*.eml'));
+$_SESSION['mfa']['sent'] -= LOGIN_CODE_RESEND_SECONDS + 1;
+resend_login_code();
+$new = mailbox_code(mailbox_latest($MAILDIR, 'new.staff@example.test'));
+ok($new !== null, 'ส่งรหัสใหม่ได้หลังรอครบ');
+if ($old !== $new) ok(strpos((string) verify_login_code($old), 'รหัสไม่ถูกต้อง') === 0, 'รหัสเก่าใช้ไม่ได้หลังส่งรหัสใหม่');
+eq(verify_login_code($new), null, 'รหัสใหม่ใช้ได้');
+
+$_SESSION = [];
+start_login_challenge($u);
+$c3 = mailbox_code(mailbox_latest($MAILDIR, 'new.staff@example.test'));
+q('UPDATE auth_tokens SET expires_at = ? WHERE id = ?', ['2000-01-01 00:00:00', $_SESSION['mfa']['tid']]);
+eq(verify_login_code($c3), 'รหัสหมดอายุแล้ว — กด "ส่งรหัสใหม่"', 'รหัสเกิน ' . LOGIN_CODE_MINUTES . ' นาที → ใช้ไม่ได้');
+$_SESSION['mfa']['started'] -= 31 * 60;
+ok(pending_login() === null, 'รอใส่รหัสเกิน 30 นาที → ต้องเข้าสู่ระบบใหม่');
+$_SESSION = [];
+$GLOBALS['APP_CONFIG']['email_2fa'] = false;
+ok(!email_2fa_enabled(), "ปิดชั่วคราวได้ด้วย 'email_2fa' => false ใน config");
+$GLOBALS['APP_CONFIG']['email_2fa'] = true;
+ok(email_2fa_enabled(), 'ค่าเริ่มต้น = เปิด');
+throws(function () use ($staff) { start_login_challenge(one('SELECT * FROM users WHERE id = ?', [$staff])); }, AppError::class, 'บัญชีไม่มีอีเมล → แจ้งให้ติดต่อ Manager', 'ยังไม่มีอีเมล');
+eq(mask_email('buranon@amn.co.th'), 'b•••••n@amn.co.th', 'ซ่อนอีเมลบางส่วนบนหน้าจอ');
+
+section('หน้า "เข้าใช้ครั้งแรก"');
+$_SESSION = [];
+create_user_invited('invitee@example.test', 'ผู้ได้รับเชิญ', ROLE_EMPLOYEE, true, true);
+array_map('unlink', glob($MAILDIR . '/*.eml'));
+request_activation('nobody@example.test');
+ok(mailbox_latest($MAILDIR, 'nobody@example.test') === null, 'อีเมลที่ไม่มีบัญชี → ไม่ส่ง (หน้าเว็บตอบเหมือนกันทุกกรณี)');
+request_activation('new.staff@example.test');
+ok(mailbox_latest($MAILDIR, 'new.staff@example.test') === null, 'บัญชีที่เปิดใช้งานแล้ว → ไม่ส่งลิงก์ (ลืมรหัสต้องให้ Manager ส่ง)');
+request_activation('Invitee@Example.test');
+ok(mailbox_token(mailbox_latest($MAILDIR, 'invitee@example.test')) !== null, 'อีเมลที่ Manager สร้างไว้และยังไม่เปิดใช้ → ส่งลิงก์');
+request_activation('invitee@example.test');
+request_activation('invitee@example.test');
+throws(function () { request_activation('invitee@example.test'); }, AppError::class, 'ขอลิงก์เกิน 3 ครั้ง / 15 นาที → ปฏิเสธ', 'บ่อยเกินไป');
+throws(function () { request_activation('not-email'); }, AppError::class, 'อีเมลผิดรูปแบบ → ปฏิเสธ');
+q('DELETE FROM login_attempts');
+
+section('Manager ส่งลิงก์ตั้งรหัสผ่านใหม่ / เปลี่ยนอีเมล / ปิดบัญชี');
+as_user($manager);
 $sv = (int) val('SELECT session_version FROM users WHERE id = ?', [$nu]);
-user_save($nu, ['username' => 'newstaff', 'name' => 'พนักงานใหม่', 'role' => ROLE_EMPLOYEE, 'active' => 0, 'can_view' => 1]);
-ok((int) val('SELECT session_version FROM users WHERE id = ?', [$nu]) > $sv, 'ปิดบัญชี → session เดิมหลุดทันที');
-user_reset_password($nu, 'Reset1234567');
-eq((int) val('SELECT must_change_password FROM users WHERE id = ?', [$nu]), 1, 'รีเซ็ตรหัส → ต้องเปลี่ยนรหัสใหม่');
+array_map('unlink', glob($MAILDIR . '/*.eml'));
+user_send_password_link($nu);
+ok(isset(password_step('new.staff@example.test', 'GoodPass123')['error']), 'ส่งลิงก์ตั้งรหัสใหม่ → รหัสเดิมใช้ไม่ได้ทันที');
+ok((int) val('SELECT session_version FROM users WHERE id = ?', [$nu]) > $sv, 'และหลุดออกจากระบบทุกเครื่อง');
+$rmail = mailbox_latest($MAILDIR, 'new.staff@example.test');
+eq($rmail['subject'] ?? null, 'ตั้งรหัสผ่านใหม่ AMN SURE', 'อีเมลตั้งรหัสผ่านใหม่');
+complete_activation((string) mailbox_token($rmail), 'NewPass12345', 'NewPass12345');
+ok(isset(password_step('new.staff@example.test', 'NewPass12345')['user']), 'ตั้งรหัสใหม่จากลิงก์แล้วเข้าสู่ระบบได้');
+throws(function () use ($manager) { user_send_password_link($manager); }, AppError::class, 'ส่งลิงก์ให้ตัวเองไม่ได้ (ใช้หน้าเปลี่ยนรหัสผ่าน)', 'เปลี่ยนรหัสผ่าน');
+$r2 = user_save($nu, ['email' => 'moved@example.test', 'name' => 'พนักงานใหม่', 'role' => ROLE_EMPLOYEE, 'active' => 1, 'can_view' => 1]);
+ok($r2['invite'] && val('SELECT activated_at FROM users WHERE id = ?', [$nu]) === null, 'เปลี่ยนอีเมล → ต้องยืนยันอีเมลใหม่ก่อนใช้งาน');
+ok(isset(password_step('moved@example.test', 'NewPass12345')['error']), 'เปลี่ยนอีเมลแล้วรหัสเดิมใช้ไม่ได้');
+throws(function () use ($manager) { user_save($manager, ['email' => 'other@example.test', 'name' => 'Manager', 'role' => ROLE_MANAGER, 'active' => 1]); }, AppError::class, 'เปลี่ยนอีเมลของตัวเองไม่ได้', 'ของตัวเอง');
+$sv = (int) val('SELECT session_version FROM users WHERE id = ?', [$nu]);
+$r3 = user_save($nu, ['email' => 'moved@example.test', 'name' => 'พนักงานใหม่', 'role' => ROLE_EMPLOYEE, 'active' => 0, 'can_view' => 1]);
+ok(!$r3['invite'] && (int) val('SELECT session_version FROM users WHERE id = ?', [$nu]) > $sv, 'ปิดบัญชี → session เดิมหลุดทันที ไม่ส่งอีเมล');
+throws(function () use ($nu) { user_send_password_link($nu); }, AppError::class, 'บัญชีที่ปิดแล้วส่งลิงก์ไม่ได้', 'ถูกปิด');
+q('DELETE FROM login_attempts');
+
+section('อัปเกรดฐานข้อมูลจากเวอร์ชัน 1.0.0 อัตโนมัติ');
+db()->exec('DROP TABLE auth_tokens');
+db()->exec('ALTER TABLE users DROP COLUMN activated_at');
+setting_set('schema_version', '1');
+schema_upgrade();
+ok((int) val("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'activated_at'") === 1, 'เพิ่มคอลัมน์ activated_at');
+ok((int) val("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'auth_tokens'") === 1, 'สร้างตาราง auth_tokens');
+eq((int) val('SELECT COUNT(*) FROM users WHERE activated_at IS NULL'), 0, 'บัญชีเดิมถือว่าเปิดใช้งานแล้ว');
+eq(setting('schema_version'), '2', 'schema_version = 2');
+schema_upgrade();
+ok(true, 'รันซ้ำได้ไม่ error');
+
+section('ส่งอีเมลผ่าน SMTP (server ทดสอบ: ไม่เข้ารหัส / STARTTLS / SSL)');
+$certFile = sys_get_temp_dir() . '/sure-test-cert-' . getmypid() . '.pem';
+$key = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+$crt = openssl_csr_sign(openssl_csr_new(['commonName' => '127.0.0.1'], $key), null, $key, 1);
+openssl_x509_export($crt, $crtPem);
+openssl_pkey_export($key, $keyPem);
+file_put_contents($certFile, $crtPem . $keyPem);
+$smtpDir = sys_get_temp_dir() . '/sure-test-smtp-' . getmypid();
+$p1 = random_int(20000, 29000);
+$p2 = $p1 + 1;
+$procs = [];
+foreach ([[$p1, 'plain'], [$p2, 'ssl']] as [$port, $mode]) {
+    $procs[] = proc_open([PHP_BINARY, __DIR__ . '/fake_smtp.php', (string) $port, $smtpDir, $mode, $certFile], [['pipe', 'r'], ['file', '/dev/null', 'w'], ['file', '/dev/null', 'w']], $pp);
+}
+for ($i = 0; $i < 30; $i++) {
+    $a = @fsockopen('127.0.0.1', $p1, $en, $es, 0.2);
+    $b = @fsockopen('127.0.0.1', $p2, $en, $es, 0.2);
+    if ($a && $b) { fclose($a); fclose($b); break; }
+    usleep(100000);
+}
+$smtp = ['transport' => 'smtp', 'host' => '127.0.0.1', 'from' => 'noreply@example.test', 'from_name' => 'AMN SURE', 'username' => 'noreply@example.test', 'password' => 'secret', 'verify_peer' => false];
+foreach (['none' => $p1, 'tls' => $p1, 'ssl' => $p2] as $enc => $port) {
+    $to = "smtp-$enc@example.test";
+    try {
+        send_mail($to, 'ทดสอบ SMTP ภาษาไทย', "บรรทัดแรก\nรหัส 123 456\n", '<p>ทดสอบ</p>', $smtp + ['encryption' => $enc, 'port' => $port]);
+        $m = mailbox_latest($smtpDir, $to);
+        ok($m && $m['subject'] === 'ทดสอบ SMTP ภาษาไทย' && mailbox_code($m) === '123456', "SMTP $enc: ส่งถึง หัวเรื่องและเนื้อหาภาษาไทยถูกต้อง");
+    } catch (Throwable $e) {
+        ok(false, "SMTP $enc: " . $e->getMessage());
+    }
+}
+throws(function () use ($smtp, $p2) { send_mail('x@example.test', 's', 't', 'h', ['password' => 'wrong', 'encryption' => 'ssl', 'port' => $p2] + $smtp); }, MailError::class, 'รหัส SMTP ผิด → แจ้ง error', '535');
+throws(function () use ($smtp, $p2) { send_mail('x@example.test', 's', 't', 'h', ['encryption' => 'ssl', 'port' => $p2, 'verify_peer' => true] + $smtp); }, MailError::class, 'ใบรับรอง SSL ไม่น่าเชื่อถือ → ไม่ส่ง (ตรวจใบรับรองเป็นค่าเริ่มต้น)', 'เชื่อมต่อ SMTP');
+throws(function () use ($smtp, $p2) { send_mail('x@example.test', 's', 't', 'h', ['encryption' => 'none', 'port' => $p2 + 7] + $smtp); }, MailError::class, 'เชื่อมต่อ SMTP ไม่ได้ → แจ้ง error', 'เชื่อมต่อ SMTP');
+throws(function () { send_mail('x@example.test', 's', 't', 'h', ['transport' => 'smtp']); }, MailError::class, 'ไม่ได้ตั้งค่าอีเมล → แจ้ง error', 'ยังไม่ได้ตั้งค่า');
+foreach ($procs as $pr) { proc_terminate($pr); proc_close($pr); }
+@unlink($certFile);
 
 echo "\n" . str_repeat('─', 50) . "\nผ่าน {$GLOBALS['__TESTS']['pass']} · ไม่ผ่าน {$GLOBALS['__TESTS']['fail']}\n";
 exit($GLOBALS['__TESTS']['fail'] > 0 ? 1 : 0);

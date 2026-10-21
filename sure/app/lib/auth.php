@@ -1,8 +1,7 @@
 <?php
-// Session, login, CSRF
+// Session, CSRF (ขั้นตอนเข้าสู่ระบบ + ยืนยันทางอีเมล อยู่ใน twofactor.php)
 // - โหลดผู้ใช้และ role จากฐานข้อมูลทุก request: ปิดบัญชี/เปลี่ยนสิทธิ์แล้วมีผลทันที
-// - session_version: เพิ่มค่าเมื่อรีเซ็ตรหัส → session เก่าทุกเครื่องหลุดทันที
-// - จำกัดการเดารหัส: ผิดเกินกำหนดต่ออีเมลหรือต่อ IP → ล็อกชั่วคราว
+// - session_version: เพิ่มค่าเมื่อรีเซ็ตรหัส/เปลี่ยนอีเมล → session เก่าทุกเครื่องหลุดทันที
 
 function session_boot(): void
 {
@@ -78,47 +77,6 @@ function load_user(string $id): ?array
 function act_as(?string $userId): void
 {
     $GLOBALS['__USER'] = $userId ? load_user($userId) : null;
-}
-
-/**
- * เข้าสู่ระบบด้วยชื่อผู้ใช้หรืออีเมล + รหัสผ่าน
- * คืน null ถ้าสำเร็จ หรือข้อความ error
- */
-function attempt_login(string $login, string $password): ?string
-{
-    $login = mb_strtolower(trim($login));
-    $ip = client_ip();
-    $max = (int) setting('login_max_attempts', 5);
-    $lockMin = (int) setting('login_lock_minutes', 15);
-    $since = date('Y-m-d H:i:s', time() - $lockMin * 60);
-
-    $failsLogin = (int) val('SELECT COUNT(*) FROM login_attempts WHERE login = ? AND success = 0 AND created_at > ?', [$login, $since]);
-    $failsIp = (int) val('SELECT COUNT(*) FROM login_attempts WHERE ip = ? AND success = 0 AND created_at > ?', [$ip, $since]);
-    if ($failsLogin >= $max || $failsIp >= $max * 4) {
-        return "ใส่รหัสผ่านผิดหลายครั้งเกินไป กรุณารอ $lockMin นาทีแล้วลองใหม่";
-    }
-
-    $user = $login === '' ? null : one('SELECT * FROM users WHERE username = ? OR email = ? LIMIT 1', [$login, $login]);
-    // เรียก password_verify เสมอ (แม้ไม่พบผู้ใช้) เพื่อไม่ให้เดาจากเวลาตอบกลับได้ว่าชื่อผู้ใช้มีจริงไหม
-    $hash = $user['password_hash'] ?? password_hash(bin2hex(random_bytes(8)), PASSWORD_DEFAULT);
-    $ok = password_verify($password, $hash) && $user && (int) $user['active'] === 1;
-
-    db_insert('login_attempts', ['login' => mb_substr($login, 0, 190), 'ip' => $ip, 'success' => $ok ? 1 : 0, 'created_at' => now()]);
-    if (!$ok) {
-        return 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
-    }
-
-    if (password_needs_rehash($user['password_hash'], PASSWORD_DEFAULT)) {
-        q('UPDATE users SET password_hash = ? WHERE id = ?', [password_hash($password, PASSWORD_DEFAULT), $user['id']]);
-    }
-    if (session_status() === PHP_SESSION_ACTIVE) session_regenerate_id(true);
-    $_SESSION['uid'] = $user['id'];
-    $_SESSION['sv'] = (int) $user['session_version'];
-    $_SESSION['last_seen'] = time();
-    unset($GLOBALS['__USER']);
-    q('UPDATE users SET last_login_at = ? WHERE id = ?', [now(), $user['id']]);
-    act_as($user['id']);
-    return null;
 }
 
 function logout(): void

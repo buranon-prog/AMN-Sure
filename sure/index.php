@@ -43,10 +43,11 @@ $parts = explode('.', $route, 2);
 $module = $parts[0];
 $action = $parts[1] ?? 'index';
 $isPost = ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST';
-$publicRoutes = ['auth.login'];
+$publicRoutes = ['auth.login', 'auth.verify', 'auth.resend', 'auth.first', 'auth.activate'];
 
 try {
     try {
+        schema_upgrade();
         $user = current_user();
         if ($isPost) csrf_check();
         if (!$user && !in_array("$module.$action", $publicRoutes, true)) {

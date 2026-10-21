@@ -1,6 +1,6 @@
 <?php
 // ใส่ข้อมูลตัวอย่าง (สมมติ) จากสเปกหัวข้อ 11 — สำหรับ dev/ทดสอบเท่านั้น ห้ามรันบน production
-// วิธีใช้ (command line เท่านั้น):  php tools/seed-demo.php <ชื่อผู้ใช้ Manager>
+// วิธีใช้ (command line เท่านั้น):  php tools/seed-demo.php <อีเมล Manager>
 // ปฏิเสธถ้า: เรียกผ่านเว็บ, ยังไม่ได้ติดตั้ง, หรือมีข้อมูลในตารางลูกค้า/เครื่อง/การขายอยู่แล้ว
 
 if (PHP_SAPI !== 'cli') {
@@ -16,12 +16,12 @@ if (!app_installed()) {
 }
 $username = $argv[1] ?? null;
 if (!$username) {
-    fwrite(STDERR, "ระบุชื่อผู้ใช้ Manager: php tools/seed-demo.php <username>\n");
+    fwrite(STDERR, "ระบุอีเมล Manager: php tools/seed-demo.php <email>\n");
     exit(1);
 }
-$mid = val('SELECT id FROM users WHERE username = ? AND role = ? AND active = 1', [mb_strtolower($username), ROLE_MANAGER]);
+$mid = val('SELECT id FROM users WHERE (username = ? OR email = ?) AND role = ? AND active = 1', [mb_strtolower($username), mb_strtolower($username), ROLE_MANAGER]);
 if (!$mid) {
-    fwrite(STDERR, "ไม่พบบัญชี Manager ชื่อ $username\n");
+    fwrite(STDERR, "ไม่พบบัญชี Manager $username\n");
     exit(1);
 }
 foreach (['sure_customers', 'sure_devices', 'sure_sales'] as $t) {

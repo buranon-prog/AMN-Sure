@@ -17,6 +17,7 @@ CREATE TABLE users (
   must_change_password TINYINT(1) NOT NULL DEFAULT 1,
   session_version INT NOT NULL DEFAULT 1,
   last_login_at DATETIME NULL,
+  activated_at DATETIME NULL,                            -- ตั้งรหัสผ่านผ่านลิงก์ในอีเมลแล้ว (NULL = รอเปิดใช้งาน)
   created_at DATETIME(6) NOT NULL,
   updated_at DATETIME(6) NOT NULL,
   created_by CHAR(36) NULL,
@@ -48,6 +49,23 @@ CREATE TABLE login_attempts (
   created_at DATETIME NOT NULL,
   KEY ix_login_attempts_login (login, created_at),
   KEY ix_login_attempts_ip (ip, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ลิงก์เปิดใช้งาน (purpose = activate) และรหัสยืนยันเข้าสู่ระบบทางอีเมล (purpose = login)
+-- เก็บเฉพาะค่า hash ของลิงก์/รหัส ไม่เก็บตัวจริง
+CREATE TABLE auth_tokens (
+  id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id CHAR(36) NOT NULL,
+  purpose VARCHAR(20) NOT NULL,
+  secret_hash CHAR(64) NOT NULL,
+  attempts INT NOT NULL DEFAULT 0,
+  expires_at DATETIME NOT NULL,
+  used_at DATETIME NULL,
+  ip VARCHAR(45) NULL,
+  created_at DATETIME(6) NOT NULL,
+  KEY ix_auth_tokens_user (user_id, purpose, created_at),
+  KEY ix_auth_tokens_hash (secret_hash),
+  CONSTRAINT fk_auth_tokens_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------- L: รายการตัวเลือก + ค่าตั้งต้น
