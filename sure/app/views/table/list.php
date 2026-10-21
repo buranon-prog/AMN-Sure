@@ -59,8 +59,10 @@ $toggleUrl = '?' . http_build_query(array_filter($toggle, function ($v) { return
     <?php endif; ?>
     <?php foreach ($rows as $r): $pk = $r[$def['pk']]; ?>
       <tr>
-        <?php foreach ($cols as $i => $k): $f = $fields[$k]; $html = fmt_html($t, $k, $f, $r[$k] ?? null); ?>
-          <td class="<?= is_numeric_type($f) ? 'num' : '' ?><?= $f['type'] === 'textarea' ? ' clip' : '' ?>">
+        <?php foreach ($cols as $i => $k): $f = $fields[$k]; $html = fmt_html($t, $k, $f, $r[$k] ?? null);
+            // ข้อความยาว (ชื่อ ที่อยู่ หมวด) ตัดบรรทัดได้ ส่วนรหัส วันที่ ตัวเลข ป้ายสถานะ อยู่บรรทัดเดียว
+            $long = !is_numeric_type($f) && $f['type'] !== 'date' && mb_strlen((string) ($r[$k] ?? '')) > 18; ?>
+          <td class="<?= is_numeric_type($f) ? 'num' : '' ?><?= $f['type'] === 'textarea' ? ' clip' : ($long ? ' wrap' : '') ?>">
             <?php if ($i === 0): ?><a href="<?= e(rec_url($t, $pk)) ?>"><b><?= $html === '' ? '—' : $html ?></b></a><?php else: ?><?= $html ?><?php endif; ?>
           </td>
         <?php endforeach; ?>

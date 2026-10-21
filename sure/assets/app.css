@@ -230,6 +230,7 @@ fieldset.card.mgr { border-color: #d6c8f5; background: #fbf9ff; }
 .table th a { color: inherit; }
 .table th.autocol { color: #8a94a6; }
 .table.list th, .table.list td { white-space: nowrap; }
+.table.list td.wrap { white-space: normal; min-width: 150px; max-width: 240px; }
 .date-th { font-size: 12px; color: var(--muted); margin-top: 3px; }
 .table td.clip { max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .table tr.row-cancelled td { background: #f1f3f6; color: #8a94a6; }
