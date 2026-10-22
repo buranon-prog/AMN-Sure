@@ -2,7 +2,9 @@ node_modules
 .next
 out
 build
-dist
+/dist/*
+!/dist/amnsure-crm-*.zip
+!/dist/amnsure-sure-*.zip
 .env
 .env*.local
 *.log

@@ -1,0 +1,4 @@
+app/config.php
+tests/config.test.php
+storage/logs/*
+!storage/logs/index.html

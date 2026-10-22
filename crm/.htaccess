@@ -1,0 +1,26 @@
+# AMN Sure CRM — Apache / LiteSpeed (cPanel)
+Options -Indexes
+DirectoryIndex index.php
+
+# ห้ามเปิดไฟล์ระบบ/ไฟล์ซ่อนโดยตรง
+<FilesMatch "(^\.|\.(sql|md|log|lock|ini|sh|bak|dist|sample)$|^composer\.)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "same-origin"
+  Header always set X-Robots-Tag "noindex, nofollow"
+</IfModule>
+
+# บังคับใช้ HTTPS เมื่อเปิด SSL แล้ว (เอา # ออก 3 บรรทัดล่างหลังติดตั้ง SSL ใน cPanel เรียบร้อย)
+# RewriteEngine On
+# RewriteCond %{HTTPS} !=on
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
