@@ -4,7 +4,7 @@
 define('APP_DIR', __DIR__);
 define('ROOT_DIR', dirname(__DIR__));
 if (!defined('STORAGE_DIR')) define('STORAGE_DIR', ROOT_DIR . '/storage');
-define('APP_VERSION', '1.2.0');
+define('APP_VERSION', '1.2.1');
 define('APP_NAME', 'AMN SURE');
 define('MIN_PHP', '7.4.0');
 
@@ -14,6 +14,8 @@ $cfgFile = APP_DIR . '/config.php';
 $GLOBALS['APP_CONFIG'] = is_file($cfgFile) ? (require $cfgFile) : [];
 date_default_timezone_set($GLOBALS['APP_CONFIG']['timezone'] ?? 'Asia/Bangkok');
 
+// exception ไม่เก็บค่า argument (รหัสผ่านฐานข้อมูล/อีเมลจะไม่ไปโผล่ใน trace หรือ log)
+@ini_set('zend.exception_ignore_args', '1');
 require APP_DIR . '/lib/support.php';
 require APP_DIR . '/lib/db.php';
 require APP_DIR . '/lib/perm.php';

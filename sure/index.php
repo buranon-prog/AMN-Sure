@@ -96,7 +96,7 @@ try {
     render('errors/error', ['title' => 'ตั้งค่าฐานข้อมูลไม่ถูกต้อง', 'message' => 'app/config.php ชี้ไปที่ฐานข้อมูลที่ไม่ใช่ของ AMN SURE ระบบหยุดทำงานเพื่อไม่ให้ข้อมูลปนกับเว็บอื่น กรุณาแจ้งผู้ดูแลระบบ'], 'layout_plain');
 } catch (Throwable $e) {
     $ref = substr(uuid(), 0, 8);
-    app_log("ERROR $ref: " . get_class($e) . ': ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString());
+    app_log("ERROR $ref: " . get_class($e) . ': ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine() . "\n" . safe_trace($e));
     if (!headers_sent()) http_response_code(500);
     $msg = 'ระบบขัดข้อง กรุณาลองใหม่อีกครั้ง หากยังเกิดซ้ำให้แจ้งผู้ดูแลระบบพร้อมรหัส ' . $ref;
     if ($debug) $msg .= ' — ' . $e->getMessage() . ' @ ' . basename($e->getFile()) . ':' . $e->getLine();

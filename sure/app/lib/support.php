@@ -214,3 +214,14 @@ function app_log(string $message): void
     if (!is_dir($dir)) @mkdir($dir, 0750, true);
     @file_put_contents($dir . '/app-' . date('Y-m') . '.log', '[' . date('c') . '] ' . $message . "\n", FILE_APPEND | LOCK_EX);
 }
+
+/** stack trace สำหรับ log โดยไม่มีค่า argument (กันรหัสผ่าน/ข้อมูลลูกค้าหลุดลงไฟล์ log) */
+function safe_trace(Throwable $e): string
+{
+    $out = [];
+    foreach ($e->getTrace() as $i => $f) {
+        $out[] = '#' . $i . ' ' . ($f['file'] ?? '[internal]') . (isset($f['line']) ? '(' . $f['line'] . ')' : '') . ': '
+            . (isset($f['class']) ? $f['class'] . ($f['type'] ?? '::') : '') . ($f['function'] ?? '') . '()';
+    }
+    return implode("\n", $out);
+}

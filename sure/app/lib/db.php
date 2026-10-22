@@ -16,12 +16,17 @@ function db(): PDO
 function db_connect(array $c): PDO
 {
     $dsn = 'mysql:host=' . $c['host'] . ';port=' . (int) ($c['port'] ?? 3306) . ';dbname=' . $c['name'] . ';charset=utf8mb4';
-    $pdo = new PDO($dsn, $c['user'], $c['pass'], [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        // emulate = true เพื่อใช้ชื่อ placeholder ซ้ำในคำค้นได้ (PDO ยัง escape ให้ครบ)
-        PDO::ATTR_EMULATE_PREPARES => true,
-    ]);
+    try {
+        $pdo = new PDO($dsn, $c['user'], $c['pass'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            // emulate = true เพื่อใช้ชื่อ placeholder ซ้ำในคำค้นได้ (PDO ยัง escape ให้ครบ)
+            PDO::ATTR_EMULATE_PREPARES => true,
+        ]);
+    } catch (PDOException $e) {
+        // สร้าง exception ใหม่ — trace ของตัวเดิมมีรหัสผ่านฐานข้อมูลเป็น argument ของ PDO->__construct
+        throw new PDOException($e->getMessage(), (int) $e->getCode());
+    }
     $pdo->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
     $pdo->exec("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
     return $pdo;

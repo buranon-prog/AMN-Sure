@@ -7,7 +7,7 @@
 
 - subdomain `crmsure.amnsure.co.th` (โฟลเดอร์ `public_html/crmsure.amnsure.co.th`)
 - PHP 7.4 ขึ้นไป (แนะนำ 8.1 หรือใหม่กว่า) และ MySQL/MariaDB ของ cPanel
-- ไฟล์ `amnsure-sure-v1.2.0.zip`
+- ไฟล์ `amnsure-sure-v1.2.1.zip`
 - กล่องอีเมลสำหรับส่งอีเมลของระบบ เช่น `noreply@amnsure.co.th` (สร้างในขั้นที่ 2.1)
 
 > **ถ้าเคยอัปโหลด CRM v1 (`amnsure-crm-v1.0.0.zip`) ไว้ใน subdomain นี้แล้ว** — AMN SURE จะมาแทนที่บน subdomain เดียวกัน
@@ -57,7 +57,7 @@ AMN SURE ต้องมี **ฐานข้อมูลของตัวเ�
 ## ขั้นที่ 3 — อัปโหลดไฟล์
 
 1. File Manager → เปิด `public_html/crmsure.amnsure.co.th` (เปิด Show Hidden Files ไว้ เพื่อให้เห็น `.htaccess`)
-2. **Upload** → เลือก `amnsure-sure-v1.2.0.zip` → รอเสร็จ → กลับไปที่โฟลเดอร์
+2. **Upload** → เลือก `amnsure-sure-v1.2.1.zip` → รอเสร็จ → กลับไปที่โฟลเดอร์
 3. คลิกขวาที่ zip → **Extract** → แตกลงใน `public_html/crmsure.amnsure.co.th` → ลบไฟล์ zip ทิ้งได้
 4. ตรวจว่า `index.php`, `install.php`, `.htaccess`, `app/`, `assets/`, `storage/` อยู่ **ชั้นเดียวกับ `php.ini`** (ถ้าไปอยู่ในโฟลเดอร์ย่อยอีกชั้น ให้ย้ายขึ้นมา)
 

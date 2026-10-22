@@ -661,6 +661,17 @@ unset($GLOBALS['__SETTINGS']);
 db_assert_ours();
 ok(true, 'คืนค่าแล้วกลับมาใช้งานได้');
 
+section('log ไม่มีรหัสผ่าน');
+$badDb = ['pass' => 'Secret-Pass-123456'] + config('db');
+try {
+    db_connect($badDb);
+    ok(false, 'รหัสฐานข้อมูลผิด → ต้อง error');
+} catch (PDOException $e) {
+    $logged = $e->getMessage() . "\n" . safe_trace($e) . "\n" . $e->getTraceAsString();
+    ok(strpos($logged, 'Secret-Pass') === false, 'error เชื่อมต่อฐานข้อมูลไม่มีรหัสผ่านใน message / trace');
+    ok(strpos($e->getMessage(), '1045') !== false, 'ยังบอกสาเหตุ (1045 Access denied) ให้แก้ได้');
+}
+
 section('ส่งอีเมลผ่าน SMTP (server ทดสอบ: ไม่เข้ารหัส / STARTTLS / SSL)');
 $certFile = sys_get_temp_dir() . '/sure-test-cert-' . getmypid() . '.pem';
 $key = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
