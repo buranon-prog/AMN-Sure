@@ -37,6 +37,11 @@ model Employee {
   failedLoginCount  Int       @default(0)
   lockedUntil       DateTime?
   passwordChangedAt DateTime?
+  // Personal token for a background tracking app (OwnTracks / Traccar Client).
+  // Only the SHA-256 hash is stored; the hint is the last 4 characters.
+  trackingTokenHash String?   @unique
+  trackingTokenHint String?
+  trackingTokenAt   DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -272,15 +277,21 @@ model LocationPing {
   jobId      String?
   latitude   Float
   longitude  Float
-  accuracy   Float?
-  source     String   @default("TRACKING") // TRACKING | SHIFT_START | SHIFT_END | CHECK_IN | CHECK_OUT
-  recordedAt DateTime @default(now())
+  accuracy   Float? // metres
+  speedKmh   Float?
+  heading    Float? // degrees, 0 = north
+  battery    Float? // percent 0–100
+  source     String   @default("TRACKING") // TRACKING (web app) | BACKGROUND_APP | SHIFT_START | SHIFT_END | CHECK_IN | CHECK_OUT
+  recordedAt DateTime @default(now()) // when the phone took the fix
+  receivedAt DateTime @default(now()) // when the server stored it — drives the live stream
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   shift    Shift?   @relation(fields: [shiftId], references: [id], onDelete: SetNull)
   job      Job?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
 
   @@index([employeeId, recordedAt])
+  @@index([receivedAt])
+  @@index([recordedAt])
 }
 
 // ---------- Notifications ----------

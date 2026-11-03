@@ -38,6 +38,9 @@ export async function recordPing(
     latitude: number | null;
     longitude: number | null;
     accuracy?: number | null;
+    speedKmh?: number | null;
+    heading?: number | null;
+    battery?: number | null;
     source: string;
     shiftId?: string | null;
     jobId?: string | null;
@@ -50,6 +53,9 @@ export async function recordPing(
       latitude: data.latitude,
       longitude: data.longitude,
       accuracy: data.accuracy ?? null,
+      speedKmh: data.speedKmh ?? null,
+      heading: data.heading ?? null,
+      battery: data.battery ?? null,
       source: data.source,
       shiftId: data.shiftId ?? null,
       jobId: data.jobId ?? null,

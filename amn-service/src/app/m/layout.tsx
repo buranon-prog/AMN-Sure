@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/session";
 import { can } from "@/lib/permissions";
 import { shortName } from "@/lib/people";
 import { getOpenShift } from "@/lib/shift";
-import { PING_INTERVAL_MS, PING_MIN_MOVE_M, TRACKING_END, TRACKING_START } from "@/lib/config";
+import { PING_HEARTBEAT_MS, PING_MIN_MOVE_M, PING_MOVING_MS, TRACKING_END, TRACKING_START } from "@/lib/config";
 import LocationTracker from "@/components/LocationTracker";
 import MobileTabs from "@/components/MobileTabs";
 import Bell from "@/components/Bell";
@@ -32,7 +32,8 @@ export default async function MobileLayout({ children }: { children: React.React
         </div>
         <LocationTracker
           active={!!shift}
-          intervalMs={PING_INTERVAL_MS}
+          movingMs={PING_MOVING_MS}
+          heartbeatMs={PING_HEARTBEAT_MS}
           minMoveM={PING_MIN_MOVE_M}
           windowLabel={`${TRACKING_START}–${TRACKING_END} น.`}
         />

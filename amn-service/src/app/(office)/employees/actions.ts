@@ -118,3 +118,16 @@ export async function unlockAction(employeeId: string, _prev: ActionState): Prom
   if (res.ok) revalidatePath(`/employees/${employeeId}`);
   return res;
 }
+
+export async function revokeTrackingAppAction(employeeId: string, _prev: ActionState): Promise<ActionState> {
+  const res = await run(async () => {
+    await actionUser(can.manageEmployees);
+    await prisma.employee.update({
+      where: { id: employeeId },
+      data: { trackingTokenHash: null, trackingTokenHint: null, trackingTokenAt: null },
+    });
+    return { ok: true, message: "ยกเลิกการเชื่อมแอปติดตามแล้ว" };
+  });
+  if (res.ok) revalidatePath(`/employees/${employeeId}`);
+  return res;
+}

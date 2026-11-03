@@ -20,6 +20,11 @@ export default async function AccountPage() {
         <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
           {user.employeeCode} <RoleBadge role={user.role} />
         </div>
+        {can.doFieldWork(user.role) && (
+          <Link href="/m/tracker" className="mt-3 block text-sm text-brand-700 underline">
+            📲 ตั้งค่าติดตามตำแหน่งแม้ปิดหน้าจอ{user.trackingTokenHash ? " (เชื่อมแล้ว)" : ""}
+          </Link>
+        )}
         {can.doFieldWork(user.role) && can.useOffice(user.role) && (
           <div className="mt-3 flex gap-2">
             <Link href="/m" className="btn btn-secondary text-xs">

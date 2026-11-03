@@ -102,7 +102,8 @@ export const EVENT_LABEL: Record<string, string> = {
 };
 
 export const PING_SOURCE_LABEL: Record<string, string> = {
-  TRACKING: "ติดตามอัตโนมัติ",
+  TRACKING: "แอปบนเว็บ",
+  BACKGROUND_APP: "แอปติดตามเบื้องหลัง",
   SHIFT_START: "เริ่มงาน",
   SHIFT_END: "เลิกงาน",
   CHECK_IN: "เช็คอินหน้างาน",

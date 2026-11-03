@@ -85,6 +85,12 @@ export default async function MyJobsPage({ searchParams }: { searchParams: { don
         )}
       </section>
 
+      {shift && !user.trackingTokenHash && (
+        <Link href="/m/tracker" className="block rounded-xl bg-sky-50 p-3 text-sm text-sky-900">
+          📲 ล็อกจอหรือใช้ Google Maps แล้วตำแหน่งหยุดส่ง? <b className="underline">ตั้งค่าติดตามแม้ปิดหน้าจอ →</b>
+        </Link>
+      )}
+
       {openVisit && (
         <Link href={`/m/jobs/${openVisit.jobId}`} className="block rounded-xl border-2 border-indigo-300 bg-indigo-50 p-4">
           <div className="text-xs font-semibold text-indigo-700">กำลังทำงานอยู่ · เช็คอิน {formatTime(openVisit.checkInAt)} น.</div>

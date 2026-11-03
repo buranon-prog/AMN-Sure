@@ -10,7 +10,7 @@ import ActionForm from "@/components/ActionForm";
 import SubmitButton from "@/components/SubmitButton";
 import EmployeeFields from "@/components/EmployeeFields";
 import { RoleBadge } from "@/components/Badges";
-import { resetPasswordAction, setActiveAction, unlockAction, updateEmployeeAction } from "../actions";
+import { resetPasswordAction, revokeTrackingAppAction, setActiveAction, unlockAction, updateEmployeeAction } from "../actions";
 import { MIN_PASSWORD } from "@/lib/constants";
 
 export default async function EmployeeDetailPage({ params, searchParams }: { params: { id: string }; searchParams: { created?: string } }) {
@@ -77,6 +77,14 @@ export default async function EmployeeDetailPage({ params, searchParams }: { par
             <ActionForm action={unlockAction.bind(null, emp.id)}>
               <SubmitButton className="btn btn-secondary">ปลดล็อก</SubmitButton>
             </ActionForm>
+          )}
+          {emp.trackingTokenHash && (
+            <div className="rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
+              เชื่อมแอปติดตามเบื้องหลังแล้ว (รหัสลงท้าย ••••{emp.trackingTokenHint}, {formatDateTime(emp.trackingTokenAt)})
+              <ActionForm action={revokeTrackingAppAction.bind(null, emp.id)} confirm="ยกเลิกการเชื่อมแอปติดตามของพนักงานคนนี้?" className="mt-2">
+                <SubmitButton className="btn btn-secondary text-xs">ยกเลิกการเชื่อมแอปติดตาม</SubmitButton>
+              </ActionForm>
+            </div>
           )}
           {emp.id !== me.id && (
             <ActionForm

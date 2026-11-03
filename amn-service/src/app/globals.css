@@ -86,3 +86,72 @@ table.data-table th.num {
 .pb-safe {
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
+
+/* ---------- Live tracking map pins ---------- */
+.amn-pin {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.amn-dot {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--c);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+.amn-dot.amn-sel {
+  width: 22px;
+  height: 22px;
+  box-shadow: 0 0 0 4px rgba(16, 134, 106, 0.35);
+}
+.amn-dot.amn-live::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 9999px;
+  border: 2px solid var(--c);
+  animation: amn-pulse 1.8s ease-out infinite;
+}
+.amn-head {
+  position: absolute;
+  inset: 0;
+}
+.amn-head::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 9px solid var(--c);
+}
+.amn-site {
+  width: 14px;
+  height: 14px;
+  background: #4f46e5;
+  border: 2px solid #fff;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+@keyframes amn-pulse {
+  from {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .amn-dot.amn-live::after {
+    animation: none;
+  }
+}

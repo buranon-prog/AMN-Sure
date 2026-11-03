@@ -13,6 +13,7 @@ import { jobBrief, logEvent } from "@/lib/jobs";
 import { notify, supervisorIds } from "@/lib/notify";
 import { shortName } from "@/lib/people";
 import { getOpenShift, recordPing } from "@/lib/shift";
+import { purgeOldLocations } from "@/lib/tracking";
 import { oneOf, optNum, optStr, str } from "@/lib/form";
 
 function coords(fd: FormData) {
@@ -50,6 +51,7 @@ export async function startShiftAction(_prev: ActionState, fd: FormData): Promis
       });
       await recordPing(tx, { employeeId: user.id, latitude: c.lat, longitude: c.lng, accuracy: c.accuracy, source: "SHIFT_START", shiftId: shift.id });
     });
+    await purgeOldLocations().catch((e) => console.error("purge locations", e));
     return { ok: true, message: `เริ่มงานเวลา ${timeKey()} น.` };
   });
   if (res.ok) touch();

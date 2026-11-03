@@ -120,9 +120,9 @@ async function status(page, path) {
   await tech3.page.click("button:has-text('เริ่มงาน')");
   await tech3.page.waitForSelector("button:has-text('เลิกงาน')", { timeout: 20000 });
   check("shift started", true);
-  await tech3.page.waitForSelector("text=/แชร์ตำแหน่งระหว่างเวลางาน|นอกช่วงเวลาติดตาม/", { timeout: 20000 }).catch(() => {});
+  await tech3.page.waitForSelector("text=/แชร์ตำแหน่งสด|นอกช่วงเวลาติดตาม/", { timeout: 20000 }).catch(() => {});
   const trackTxt = await tech3.page.textContent("header");
-  check("tracker shows sharing status", /แชร์ตำแหน่งระหว่างเวลางาน|นอกช่วงเวลา/.test(trackTxt), trackTxt.replace(/\s+/g, " ").slice(0, 120));
+  check("tracker shows sharing status", /แชร์ตำแหน่งสด|นอกช่วงเวลา/.test(trackTxt), trackTxt.replace(/\s+/g, " ").slice(0, 120));
   await tech3.page.screenshot({ path: `${SHOTS}/mobile-home.png`, fullPage: true });
 
   // check in
@@ -223,20 +223,97 @@ async function status(page, path) {
   await mgr.page.click("button:has-text('เปิดใช้งานบัญชี')");
   await mgr.page.waitForSelector("text=เปิดใช้งานบัญชีแล้ว");
 
+  // ---------- REALTIME tracking ----------
+  const { request } = require("playwright");
+  const api = await request.newContext({ baseURL: BASE });
+  async function tokenFor(page) {
+    await page.goto("/m/tracker");
+    await page.click("button:has-text('สร้างรหัสเชื่อมต่อ')");
+    const input = page.locator("div:has(> div:text-is('Device identifier')) input");
+    await input.waitFor({ timeout: 15000 });
+    return input.inputValue();
+  }
+  const tok1 = await tokenFor(tech1.page);
+  check("technician can create a tracking-app token", tok1.length >= 30);
+
+  await mgr.page.setViewportSize({ width: 1366, height: 900 });
+  await mgr.page.goto("/tracking");
+  await mgr.page.waitForSelector("text=เชื่อมต่อสด", { timeout: 15000 });
+  check("office map connects to live stream", true);
+  const pinSel = '.leaflet-marker-icon[title="อนุชา แก้วใส (เบิร์ด)"]';
+  await mgr.page.waitForSelector(pinSel);
+  const before = await mgr.page.getAttribute(pinSel, "style");
+
+  const t0 = Math.floor(Date.now() / 1000);
+  const own = await api.post(`/api/track?token=${tok1}`, {
+    data: { _type: "location", lat: 13.7465, lon: 100.5349, tst: t0, acc: 8, vel: 42, cog: 90, batt: 77, tid: "B1" },
+  });
+  check("OwnTracks point stored", own.status() === 200 && (await own.text()) === "[]" && own.headers()["x-tracking-result"] === "STORED:1", own.headers()["x-tracking-result"]);
+
+  const row1 = mgr.page.locator('[data-person]', { hasText: "อนุชา แก้วใส" });
+  await row1.locator("text=42 กม./ชม.").waitFor({ timeout: 10000 }).catch(() => {});
+  const rowText = (await row1.textContent()) || "";
+  check("office list updates live (speed, battery, LIVE, background icon)", /42 กม\.\/ชม\./.test(rowText) && rowText.includes("77%") && rowText.includes("LIVE") && rowText.includes("📲"), rowText.replace(/\s+/g, " "));
+  await mgr.page.waitForTimeout(1200); // marker glides for ~0.9 s
+  const after = await mgr.page.getAttribute(pinSel, "style");
+  check("map pin moved without reloading the page", before !== after);
+
+  const osm = await api.get(`/api/track?id=${tok1}&lat=13.7480&lon=100.5390&timestamp=${t0 + 10}&speed=10&bearing=45&batt=76`);
+  check("OsmAnd/Traccar query point stored", osm.headers()["x-tracking-result"] === "STORED:1", osm.headers()["x-tracking-result"]);
+  const trJson = await api.post("/api/track", {
+    data: {
+      device_id: tok1,
+      location: { timestamp: new Date((t0 + 20) * 1000).toISOString(), coords: { latitude: 13.749, longitude: 100.541, speed: 5, heading: 180, accuracy: 6 }, battery: { level: 0.75 } },
+    },
+  });
+  check("Traccar JSON point stored", trJson.headers()["x-tracking-result"] === "STORED:1", trJson.headers()["x-tracking-result"]);
+  const bad = await api.post("/api/track?token=this-is-not-a-valid-token-123", { data: { _type: "location", lat: 13, lon: 100, tst: t0 } });
+  check("unknown token rejected (401)", bad.status() === 401);
+  const tok4 = await tokenFor(tech4.page);
+  const noShift = await api.post(`/api/track?token=${tok4}`, { data: { _type: "location", lat: 13.75, lon: 100.5, tst: t0 } });
+  check("background point without an open shift is dropped", noShift.status() === 200 && noShift.headers()["x-tracking-result"] === "NO_SHIFT", noShift.headers()["x-tracking-result"]);
+
+  // Trail for the selected technician includes the background-app points
+  await row1.click();
+  await mgr.page.waitForSelector("td:text-is('แอปติดตามเบื้องหลัง')", { timeout: 10000 });
+  check("selected technician's trail lists background-app points", (await mgr.page.locator("td:text-is('แอปติดตามเบื้องหลัง')").count()) >= 3);
+  await mgr.page.waitForTimeout(1500); // let the map finish its zoom animation
+  await mgr.page.screenshot({ path: `${SHOTS}/office-tracking-live.png`, fullPage: true });
+
+  // Web app on the phone streams while open: move the phone, office sees it
+  const supPhone = await login(browser, "SUP001", { ...phone, geolocation: { latitude: 13.7563, longitude: 100.5018, accuracy: 10 }, permissions: ["geolocation"] });
+  await supPhone.page.goto("/m"); // supervisors land on the office dashboard
+  await supPhone.page.waitForSelector("text=แชร์ตำแหน่งสด", { timeout: 20000 });
+  check("phone web app shows live sharing", true);
+  await supPhone.page.screenshot({ path: `${SHOTS}/mobile-live.png` });
+  await mgr.page.click("button:has-text('ดูทุกคน')");
+  const supPin = '.leaflet-marker-icon[title="สมชาย ทองดี (เหน่ง)"]';
+  const supRow = mgr.page.locator('[data-person]', { hasText: "สมชาย ทองดี" });
+  await supRow.locator("[data-live]").waitFor({ timeout: 20000 }).catch(() => {});
+  check("phone web app point shows as LIVE in the office", (await supRow.locator("[data-live]").count()) === 1);
+  await mgr.page.waitForTimeout(1200);
+  const supBefore = await mgr.page.getAttribute(supPin, "style");
+  await supPhone.page.waitForTimeout(8000); // moving cadence: ≥ 8 s between points
+  await supPhone.ctx.setGeolocation({ latitude: 13.7300, longitude: 100.5230, accuracy: 10 });
+  let moved = false;
+  for (let i = 0; i < 20 && !moved; i++) {
+    await mgr.page.waitForTimeout(1000);
+    moved = (await mgr.page.getAttribute(supPin, "style")) !== supBefore;
+  }
+  check("phone movement moves the pin on the office map within seconds", moved);
+  await api.dispose();
+
   // ---------- screenshots of office pages ----------
   await mgr.page.setViewportSize({ width: 1366, height: 900 });
   for (const [path, name] of [
     ["/dashboard", "office-dashboard"],
     ["/jobs", "office-jobs"],
     ["/technicians", "office-technicians"],
-    ["/tracking", "office-tracking"],
   ]) {
     await mgr.page.goto(path);
     await mgr.page.waitForTimeout(path === "/tracking" ? 2500 : 300);
     await mgr.page.screenshot({ path: `${SHOTS}/${name}.png`, fullPage: true });
   }
-  const mapOk = await mgr.page.locator(".leaflet-container").count();
-  check("tracking map rendered", mapOk === 1);
 
   // admin on a phone: office layout works on mobile
   const admPhone = await login(browser, "ADM001", { ...phone });
