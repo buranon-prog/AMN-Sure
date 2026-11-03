@@ -1,0 +1,318 @@
+// AMN Service — data model for the Services department.
+//
+// Categorical fields (role/status/type…) are plain Strings validated in the
+// app layer (src/lib/constants.ts) instead of Prisma enums, so the same
+// schema runs on SQLite (dev) and PostgreSQL (production) unchanged.
+//
+// Who is who:
+//   ADMIN      แอดมิน      — ลงงาน: ลูกค้า/เครื่อง/เข้าที่ไหน/กี่โมง
+//   SUPERVISOR หัวหน้าช่าง — จ่ายงาน: เลือกช่างตามความถนัด (และรับงานเองได้)
+//   TECHNICIAN ช่าง        — เห็นเฉพาะงานของตัวเองบนมือถือ, เช็คอิน, เขียนสรุปงาน
+//   MANAGER    ผู้จัดการ    — ทำได้ทุกอย่าง + จัดการบัญชีพนักงาน
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- People ----------
+
+// An employee is also the login account: รหัสพนักงาน + รหัสผ่าน.
+model Employee {
+  id                String    @id @default(cuid())
+  employeeCode      String    @unique // stored upper-case; used as the login name
+  firstName         String
+  lastName          String
+  nickname          String? // ชื่อเล่น เช่น เหน่ง, โด่ง
+  phone             String?
+  email             String?
+  position          String?
+  role              String    @default("TECHNICIAN") // MANAGER | SUPERVISOR | ADMIN | TECHNICIAN
+  active            Boolean   @default(true)
+  passwordHash      String
+  failedLoginCount  Int       @default(0)
+  lockedUntil       DateTime?
+  passwordChangedAt DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  skills         EmployeeSkill[]
+  assignments    JobAssignment[]    @relation("AssignmentEmployee")
+  assignedByMe   JobAssignment[]    @relation("AssignmentAssignedBy")
+  jobsCreated    Job[]              @relation("JobCreatedBy")
+  jobsAssignedBy Job[]              @relation("JobAssignedBy")
+  visits         JobVisit[]
+  events         JobEvent[]
+  shifts         Shift[]
+  locationPings  LocationPing[]
+  notifications  Notification[]
+  pushSubs       PushSubscription[]
+}
+
+// ความถนัดของช่างต่อรุ่นเครื่อง: 1 = พอทำได้ … 5 = เชี่ยวชาญ
+model EmployeeSkill {
+  id             String   @id @default(cuid())
+  employeeId     String
+  machineModelId String
+  level          Int
+  notes          String?
+  updatedAt      DateTime @updatedAt
+
+  employee     Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  machineModel MachineModel @relation(fields: [machineModelId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, machineModelId])
+}
+
+// ---------- Customers & installed machines ----------
+
+model Customer {
+  id           String   @id @default(cuid())
+  customerCode String   @unique
+  name         String
+  type         String   @default("HOSPITAL") // HOSPITAL | CLINIC | LAB | COMPANY | GOVERNMENT | OTHER
+  contactName  String?
+  contactPhone String?
+  email        String?
+  taxId        String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sites Site[]
+}
+
+// สถานที่ของลูกค้า (สาขา/ตึก) — ที่อยู่ + พิกัดสำหรับนำทางและตรวจการเช็คอิน
+model Site {
+  id           String   @id @default(cuid())
+  customerId   String
+  name         String // e.g. "สำนักงานใหญ่", "สาขารังสิต"
+  address      String?
+  province     String?
+  latitude     Float?
+  longitude    Float?
+  contactName  String?
+  contactPhone String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  customer Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  machines Machine[]
+
+  @@index([customerId])
+}
+
+// เครื่องรุ่นอะไร (catalog)
+model MachineModel {
+  id          String   @id @default(cuid())
+  brand       String
+  model       String
+  category    String // e.g. "เครื่องอัลตราซาวด์" — fallback skill match across models
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  machines Machine[]
+  skills   EmployeeSkill[]
+
+  @@unique([brand, model])
+}
+
+// เครื่องของลูกค้า 1 เครื่อง (รหัสเครื่องลูกค้า)
+model Machine {
+  id             String    @id @default(cuid())
+  machineCode    String    @unique
+  siteId         String
+  machineModelId String
+  serialNumber   String?
+  locationDetail String? // อาคาร / ชั้น / ห้อง / แผนก
+  installDate    DateTime?
+  warrantyEnd    DateTime?
+  status         String    @default("ACTIVE") // ACTIVE | INACTIVE
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  site         Site         @relation(fields: [siteId], references: [id])
+  machineModel MachineModel @relation(fields: [machineModelId], references: [id])
+  jobs         Job[]
+
+  @@index([siteId])
+}
+
+// ---------- Jobs ----------
+
+model Job {
+  id             String    @id @default(cuid())
+  jobNo          String    @unique // JOB-YYMM-0001 (Bangkok month)
+  machineId      String
+  type           String    @default("REPAIR") // REPAIR | PM | INSTALL | INSPECTION | OTHER
+  priority       String    @default("NORMAL") // LOW | NORMAL | HIGH | URGENT
+  problem        String // อาการ / งานที่ต้องทำ
+  reporterName   String? // ผู้แจ้ง
+  reporterPhone  String?
+  scheduledAt    DateTime // นัดเข้าหน้างาน — moves to the next planned visit while ON_HOLD
+  estimatedHours Float?
+  status         String    @default("NEW") // NEW | ASSIGNED | IN_PROGRESS | ON_HOLD | COMPLETED | CANCELLED
+  resolution     String? // final summary (from the visit that completed the job)
+  completedAt    DateTime?
+  cancelReason   String?
+  officeNotes    String?
+  createdById    String
+  assignedById   String?
+  assignedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  machine       Machine         @relation(fields: [machineId], references: [id])
+  createdBy     Employee        @relation("JobCreatedBy", fields: [createdById], references: [id])
+  assignedBy    Employee?       @relation("JobAssignedBy", fields: [assignedById], references: [id])
+  assignments   JobAssignment[]
+  visits        JobVisit[]
+  events        JobEvent[]
+  pings         LocationPing[]
+  notifications Notification[]
+
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([machineId])
+}
+
+model JobAssignment {
+  id           String   @id @default(cuid())
+  jobId        String
+  employeeId   String
+  isLead       Boolean  @default(false)
+  assignedById String
+  assignedAt   DateTime @default(now())
+
+  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  employee   Employee @relation("AssignmentEmployee", fields: [employeeId], references: [id])
+  assignedBy Employee @relation("AssignmentAssignedBy", fields: [assignedById], references: [id])
+
+  @@unique([jobId, employeeId])
+  @@index([employeeId])
+}
+
+// One trip to site by one technician. Check-in (GPS) → สรุปงาน →
+// outcome HOLD (ยังไม่เสร็จ: job goes ON_HOLD) or COMPLETED (ส่งงาน).
+// outcome stays null while the technician is still on site.
+model JobVisit {
+  id               String    @id @default(cuid())
+  jobId            String
+  employeeId       String
+  checkInAt        DateTime  @default(now())
+  checkInLat       Float?
+  checkInLng       Float?
+  checkInAccuracy  Float?
+  checkInDistanceM Float? // distance from the site's coordinates, when both are known
+  checkOutAt       DateTime?
+  checkOutLat      Float?
+  checkOutLng      Float?
+  summary          String?
+  partsUsed        String?
+  outcome          String? // HOLD | COMPLETED
+  holdReason       String?
+  nextVisitAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  job      Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@index([jobId])
+  @@index([employeeId, checkInAt])
+}
+
+// Audit trail of everything that happened to a job.
+model JobEvent {
+  id        String   @id @default(cuid())
+  jobId     String
+  actorId   String?
+  type      String // CREATED | UPDATED | ASSIGNED | UNASSIGNED | CHECK_IN | HOLD | COMPLETED | RESCHEDULED | CANCELLED | REOPENED
+  message   String
+  createdAt DateTime @default(now())
+
+  job   Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  actor Employee? @relation(fields: [actorId], references: [id])
+
+  @@index([jobId, createdAt])
+}
+
+// ---------- Work time & location ----------
+
+// ลงเวลาเริ่มงาน/เลิกงานจากมือถือ — location tracking only runs inside an open shift.
+model Shift {
+  id         String    @id @default(cuid())
+  employeeId String
+  workDate   String // YYYY-MM-DD in Asia/Bangkok
+  startAt    DateTime  @default(now())
+  startLat   Float?
+  startLng   Float?
+  endAt      DateTime?
+  endLat     Float?
+  endLng     Float?
+  autoClosed Boolean   @default(false)
+
+  employee Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  pings    LocationPing[]
+
+  @@index([employeeId, workDate])
+}
+
+model LocationPing {
+  id         String   @id @default(cuid())
+  employeeId String
+  shiftId    String?
+  jobId      String?
+  latitude   Float
+  longitude  Float
+  accuracy   Float?
+  source     String   @default("TRACKING") // TRACKING | SHIFT_START | SHIFT_END | CHECK_IN | CHECK_OUT
+  recordedAt DateTime @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  shift    Shift?   @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+  job      Job?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
+
+  @@index([employeeId, recordedAt])
+}
+
+// ---------- Notifications ----------
+
+// In-app notification (bell). Each one is also pushed to the employee's
+// phone(s) via Web Push when they have enabled notifications.
+model Notification {
+  id         String    @id @default(cuid())
+  employeeId String
+  jobId      String?
+  type       String // JOB_ASSIGNED | JOB_UNASSIGNED | JOB_RESCHEDULED | JOB_CANCELLED | JOB_NEW | JOB_HOLD | JOB_COMPLETED
+  title      String
+  body       String
+  url        String
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  job      Job?     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId, readAt])
+}
+
+// A browser/phone that accepted Web Push for an employee.
+model PushSubscription {
+  id         String   @id @default(cuid())
+  employeeId String
+  endpoint   String   @unique
+  p256dh     String
+  auth       String
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
