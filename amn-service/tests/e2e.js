@@ -40,8 +40,8 @@ async function status(page, path) {
     const p = await ctx.newPage();
     const r = await status(p, "/dashboard");
     check("anon /dashboard redirects to login", r.code === 307 && r.loc.includes("/login"));
-    const api = await p.request.post("/api/location", { data: { lat: 13, lng: 100 } });
-    check("anon /api/location → 401 JSON", api.status() === 401);
+    const push = await p.request.post("/api/push", { data: {} });
+    check("anon /api/push → 401", push.status() === 401);
     const exp = await p.request.get("/api/export/jobs");
     check("anon export → 401", exp.status() === 401);
     // wrong password
@@ -69,8 +69,6 @@ async function status(page, path) {
   const admin = await login(browser, "ADM001");
   check("admin lands on /dashboard", new URL(admin.page.url()).pathname === "/dashboard");
   check("admin blocked from /employees", (await status(admin.page, "/employees")).code === 307);
-  const admPings = await admin.page.request.get("/api/export/location-pings");
-  check("admin cannot export location history (403)", admPings.status() === 403);
   check("admin can export jobs CSV", (await admin.page.request.get("/api/export/jobs")).status() === 200);
 
   await admin.page.goto("/jobs/new");
@@ -117,23 +115,24 @@ async function status(page, path) {
   check("other technician gets 404 for job not theirs", tech1Other.status() === 404);
 
   await tech3.page.goto("/m");
-  await tech3.page.click("button:has-text('เริ่มงาน')");
-  await tech3.page.waitForSelector("button:has-text('เลิกงาน')", { timeout: 20000 });
-  check("shift started", true);
-  await tech3.page.waitForSelector("text=/แชร์ตำแหน่งสด|นอกช่วงเวลาติดตาม/", { timeout: 20000 }).catch(() => {});
-  const trackTxt = await tech3.page.textContent("header");
-  check("tracker shows sharing status", /แชร์ตำแหน่งสด|นอกช่วงเวลา/.test(trackTxt), trackTxt.replace(/\s+/g, " ").slice(0, 120));
+  check("no start/stop-shift buttons any more", (await tech3.page.locator("button:has-text('เริ่มงาน')").count()) === 0);
   await tech3.page.screenshot({ path: `${SHOTS}/mobile-home.png`, fullPage: true });
 
-  // check in
+  // ถึงหน้างานแล้ว — shares the phone's location, office is notified
   await tech3.page.goto(`/m/jobs/${jobId}`);
-  await tech3.page.click("text=เช็คอินถึงหน้างาน");
+  await tech3.page.click("button:has-text('ถึงหน้างานแล้ว')");
   await tech3.page.waitForSelector("text=สรุปงานที่ทำ", { timeout: 20000 });
-  check("check-in shows report form", true);
+  check("arrival press shows report form", true);
+  await admin.page.goto(`/jobs/${jobId}`);
+  check("office sees IN_PROGRESS after arrival", (await admin.page.locator("span.badge", { hasText: "กำลังทำ" }).count()) > 0);
+  const arrive = (await admin.page.locator("text=📍 ถึง").first().textContent()) || "";
+  check("arrival location + distance recorded", /ดูตำแหน่ง/.test(arrive) && /ห่างจากหน้างาน \d+ ม\./.test(arrive), arrive.replace(/\s+/g, " "));
+  await admin.page.goto("/notifications");
+  check("office notified: ช่างถึงหน้างานแล้ว", (await admin.page.locator("text=ช่างถึงหน้างานแล้ว").count()) > 0);
 
-  // report without outcome → browser validation keeps us here; fill HOLD
+  // Hold — shares location again
   await tech3.page.fill("#summary", "E2E: วัดค่า NIBP คลาดเคลื่อน 15 mmHg ต้องเปลี่ยนปั๊มลม");
-  await tech3.page.click("text=ยังไม่เสร็จ");
+  await tech3.page.click("label:has-text('ยังไม่เสร็จ')");
   await tech3.page.fill("#holdReason", "รออะไหล่ปั๊มลม");
   await tech3.page.screenshot({ path: `${SHOTS}/mobile-report.png`, fullPage: true });
   await Promise.all([tech3.page.waitForURL(/\/m\?done=/, { timeout: 20000 }), tech3.page.click("button:has-text('บันทึก Hold')")]);
@@ -141,42 +140,37 @@ async function status(page, path) {
 
   await sup.page.goto(`/jobs/${jobId}`);
   check("office sees ON_HOLD", (await sup.page.locator("span.badge", { hasText: "Hold (ยังไม่เสร็จ)" }).count()) > 0);
-  const dist = await sup.page.locator("text=ห่างจากหน้างาน").first().textContent();
-  check("visit records distance from site", /ห่างจากหน้างาน \d+ ม\./.test(dist || ""), dist);
+  const holdLine = (await sup.page.locator("text=⏸️ Hold").first().textContent()) || "";
+  check("hold press location recorded", /ดูตำแหน่ง/.test(holdLine) && /ห่างจากหน้างาน/.test(holdLine), holdLine.replace(/\s+/g, " "));
 
-  // second visit → complete
+  // second visit: arrive again → เสร็จแล้ว
   await tech3.page.goto(`/m/jobs/${jobId}`);
-  await tech3.page.click("text=เช็คอินถึงหน้างาน");
+  await tech3.page.click("button:has-text('ถึงหน้างานแล้ว')");
   await tech3.page.waitForSelector("text=สรุปงานที่ทำ", { timeout: 20000 });
   await tech3.page.fill("#summary", "E2E: เปลี่ยนปั๊มลม NIBP สอบเทียบผ่าน");
-  await tech3.page.click("text=เสร็จแล้ว");
+  await tech3.page.click("label:has-text('เสร็จแล้ว')");
   await Promise.all([tech3.page.waitForURL(/\/m\?done=/, { timeout: 20000 }), tech3.page.click("button:has-text('ส่งงาน')")]);
   check("completed → message ส่งงาน", (await tech3.page.locator("text=เรียบร้อย").count()) > 0);
 
   await admin.page.goto(`/jobs/${jobId}`);
   check("office sees COMPLETED", (await admin.page.locator("span.badge", { hasText: "เสร็จแล้ว" }).count()) > 0);
   check("2 visits recorded", (await admin.page.locator("text=รายงานการเข้าหน้างาน (2 ครั้ง)").count()) === 1);
-  const aBell = await admin.page.getAttribute('a[href="/notifications"] >> nth=0', "aria-label");
-  check("admin notified on hold/complete", /การแจ้งเตือน [1-9]/.test(aBell || ""), aBell);
+  const doneLine = (await admin.page.locator("text=✅ เสร็จ").first().textContent()) || "";
+  check("finish press location recorded", /ดูตำแหน่ง/.test(doneLine), doneLine.replace(/\s+/g, " "));
 
-  // completed job: technician cannot check in again (server-side guard via direct action is covered by UI absence)
   await tech3.page.goto(`/m/jobs/${jobId}`);
-  check("no check-in button on completed job", (await tech3.page.locator("text=เช็คอินถึงหน้างาน").count()) === 0);
+  check("no arrival button on completed job", (await tech3.page.locator("button:has-text('ถึงหน้างานแล้ว')").count()) === 0);
 
-  // location API: accepted once, then throttled
-  const ping1 = await tech3.page.request.post("/api/location", { data: { lat: 13.74, lng: 100.55, accuracy: 20 } });
-  const j1 = await ping1.json();
-  check("location ping handled", ping1.status() === 200, JSON.stringify(j1));
-  const ping2 = await tech3.page.request.post("/api/location", { data: { lat: 13.74, lng: 100.55, accuracy: 20 } });
-  const j2 = await ping2.json();
-  check("rapid second ping throttled or outside hours", j2.accepted === false, JSON.stringify(j2));
-  // end shift
-  await tech3.page.goto("/m");
-  tech3.page.once("dialog", (d) => d.accept());
-  await tech3.page.click("button:has-text('เลิกงาน')");
-  await tech3.page.waitForSelector("button:has-text('เริ่มงาน')", { timeout: 20000 });
-  const ping3 = await tech3.page.request.post("/api/location", { data: { lat: 13.74, lng: 100.55 } });
-  check("after ending shift, location is rejected", (await ping3.json()).reason === "NO_SHIFT");
+  // Location permission is required: a phone that blocks Location cannot press ถึงหน้างาน
+  const tech1Job = await tech1.page.request.get("/m");
+  check("TEC001 home loads", tech1Job.status() === 200);
+  await tech1.page.goto("/m");
+  await tech1.page.goto((await tech1.page.locator("a[href^='/m/jobs/']").first().getAttribute("href")) || "/m");
+  await tech1.page.click("button:has-text('ถึงหน้างานแล้ว')");
+  await tech1.page.waitForSelector("p[role=alert]", { timeout: 20000 });
+  const deniedText = (await tech1.page.textContent("p[role=alert]")) || "";
+  check("no Location permission → arrival blocked with instructions", deniedText.includes("ต้องอนุญาตให้แอปใช้ตำแหน่ง"), deniedText);
+  check("…and nothing was recorded", (await tech1.page.locator("text=สรุปงานที่ทำ").count()) === 0);
 
   // tech history
   await tech3.page.goto("/m/history");
@@ -187,7 +181,7 @@ async function status(page, path) {
   const mgr = await login(browser, "MGR001");
   await mgr.page.goto("/employees");
   check("manager sees permission matrix", (await mgr.page.locator("text=สิทธิ์การเข้าถึงของแต่ละบทบาท").count()) === 1);
-  check("manager can export location history", (await mgr.page.request.get("/api/export/location-pings")).status() === 200);
+  check("visit export (with arrive/finish locations) downloads", (await mgr.page.request.get("/api/export/visits")).status() === 200);
 
   const tech4 = await login(browser, "TEC004", { ...phone });
   // Guard: a technician with open jobs cannot be moved to a non-field role
@@ -223,85 +217,21 @@ async function status(page, path) {
   await mgr.page.click("button:has-text('เปิดใช้งานบัญชี')");
   await mgr.page.waitForSelector("text=เปิดใช้งานบัญชีแล้ว");
 
-  // ---------- REALTIME tracking ----------
-  const { request } = require("playwright");
-  const api = await request.newContext({ baseURL: BASE });
-  async function tokenFor(page) {
-    await page.goto("/m/tracker");
-    await page.click("button:has-text('สร้างรหัสเชื่อมต่อ')");
-    const input = page.locator("div:has(> div:text-is('Device identifier')) input");
-    await input.waitFor({ timeout: 15000 });
-    return input.inputValue();
-  }
-  const tok1 = await tokenFor(tech1.page);
-  check("technician can create a tracking-app token", tok1.length >= 30);
-
+  // ---------- Office map: where technicians pressed ถึง / เสร็จ ----------
   await mgr.page.setViewportSize({ width: 1366, height: 900 });
   await mgr.page.goto("/tracking");
-  await mgr.page.waitForSelector("text=เชื่อมต่อสด", { timeout: 15000 });
-  check("office map connects to live stream", true);
-  const pinSel = '.leaflet-marker-icon[title="อนุชา แก้วใส (เบิร์ด)"]';
-  await mgr.page.waitForSelector(pinSel);
-  const before = await mgr.page.getAttribute(pinSel, "style");
-
-  const t0 = Math.floor(Date.now() / 1000);
-  const own = await api.post(`/api/track?token=${tok1}`, {
-    data: { _type: "location", lat: 13.7465, lon: 100.5349, tst: t0, acc: 8, vel: 42, cog: 90, batt: 77, tid: "B1" },
-  });
-  check("OwnTracks point stored", own.status() === 200 && (await own.text()) === "[]" && own.headers()["x-tracking-result"] === "STORED:1", own.headers()["x-tracking-result"]);
-
-  const row1 = mgr.page.locator('[data-person]', { hasText: "อนุชา แก้วใส" });
-  await row1.locator("text=42 กม./ชม.").waitFor({ timeout: 10000 }).catch(() => {});
-  const rowText = (await row1.textContent()) || "";
-  check("office list updates live (speed, battery, LIVE, background icon)", /42 กม\.\/ชม\./.test(rowText) && rowText.includes("77%") && rowText.includes("LIVE") && rowText.includes("📲"), rowText.replace(/\s+/g, " "));
-  await mgr.page.waitForTimeout(1200); // marker glides for ~0.9 s
-  const after = await mgr.page.getAttribute(pinSel, "style");
-  check("map pin moved without reloading the page", before !== after);
-
-  const osm = await api.get(`/api/track?id=${tok1}&lat=13.7480&lon=100.5390&timestamp=${t0 + 10}&speed=10&bearing=45&batt=76`);
-  check("OsmAnd/Traccar query point stored", osm.headers()["x-tracking-result"] === "STORED:1", osm.headers()["x-tracking-result"]);
-  const trJson = await api.post("/api/track", {
-    data: {
-      device_id: tok1,
-      location: { timestamp: new Date((t0 + 20) * 1000).toISOString(), coords: { latitude: 13.749, longitude: 100.541, speed: 5, heading: 180, accuracy: 6 }, battery: { level: 0.75 } },
-    },
-  });
-  check("Traccar JSON point stored", trJson.headers()["x-tracking-result"] === "STORED:1", trJson.headers()["x-tracking-result"]);
-  const bad = await api.post("/api/track?token=this-is-not-a-valid-token-123", { data: { _type: "location", lat: 13, lon: 100, tst: t0 } });
-  check("unknown token rejected (401)", bad.status() === 401);
-  const tok4 = await tokenFor(tech4.page);
-  const noShift = await api.post(`/api/track?token=${tok4}`, { data: { _type: "location", lat: 13.75, lon: 100.5, tst: t0 } });
-  check("background point without an open shift is dropped", noShift.status() === 200 && noShift.headers()["x-tracking-result"] === "NO_SHIFT", noShift.headers()["x-tracking-result"]);
-
-  // Trail for the selected technician includes the background-app points
-  await row1.click();
-  await mgr.page.waitForSelector("td:text-is('แอปติดตามเบื้องหลัง')", { timeout: 10000 });
-  check("selected technician's trail lists background-app points", (await mgr.page.locator("td:text-is('แอปติดตามเบื้องหลัง')").count()) >= 3);
-  await mgr.page.waitForTimeout(1500); // let the map finish its zoom animation
-  await mgr.page.screenshot({ path: `${SHOTS}/office-tracking-live.png`, fullPage: true });
-
-  // Web app on the phone streams while open: move the phone, office sees it
-  const supPhone = await login(browser, "SUP001", { ...phone, geolocation: { latitude: 13.7563, longitude: 100.5018, accuracy: 10 }, permissions: ["geolocation"] });
-  await supPhone.page.goto("/m"); // supervisors land on the office dashboard
-  await supPhone.page.waitForSelector("text=แชร์ตำแหน่งสด", { timeout: 20000 });
-  check("phone web app shows live sharing", true);
-  await supPhone.page.screenshot({ path: `${SHOTS}/mobile-live.png` });
-  await mgr.page.click("button:has-text('ดูทุกคน')");
-  const supPin = '.leaflet-marker-icon[title="สมชาย ทองดี (เหน่ง)"]';
-  const supRow = mgr.page.locator('[data-person]', { hasText: "สมชาย ทองดี" });
-  await supRow.locator("[data-live]").waitFor({ timeout: 20000 }).catch(() => {});
-  check("phone web app point shows as LIVE in the office", (await supRow.locator("[data-live]").count()) === 1);
-  await mgr.page.waitForTimeout(1200);
-  const supBefore = await mgr.page.getAttribute(supPin, "style");
-  await supPhone.page.waitForTimeout(8000); // moving cadence: ≥ 8 s between points
-  await supPhone.ctx.setGeolocation({ latitude: 13.7300, longitude: 100.5230, accuracy: 10 });
-  let moved = false;
-  for (let i = 0; i < 20 && !moved; i++) {
-    await mgr.page.waitForTimeout(1000);
-    moved = (await mgr.page.getAttribute(supPin, "style")) !== supBefore;
-  }
-  check("phone movement moves the pin on the office map within seconds", moved);
-  await api.dispose();
+  const t3row = mgr.page.locator("[data-person]", { hasText: "ศุภชัย บุญมา" });
+  const t3text = (await t3row.textContent()) || "";
+  check("map list shows TEC003's last press (เสร็จงาน)", t3text.includes("เสร็จงาน") && t3text.includes("4 ครั้ง"), t3text.replace(/\s+/g, " "));
+  const onSiteRow = (await mgr.page.locator("[data-person]", { hasText: "ธนพล รุ่งเรือง" }).textContent()) || "";
+  check("map list shows a technician currently on site", onSiteRow.includes("อยู่หน้างาน"), onSiteRow.replace(/\s+/g, " "));
+  await t3row.click();
+  await mgr.page.waitForURL(/employee=/);
+  check("selected technician shows 4 numbered presses", (await mgr.page.locator("tbody tr").count()) === 4);
+  check("map rendered", (await mgr.page.locator(".leaflet-container").count()) === 1);
+  await mgr.page.waitForTimeout(1500);
+  await mgr.page.screenshot({ path: `${SHOTS}/office-tracking.png`, fullPage: true });
+  check("tracking API endpoints are gone", (await mgr.page.request.post("/api/location", { data: {} })).status() === 404);
 
   // ---------- screenshots of office pages ----------
   await mgr.page.setViewportSize({ width: 1366, height: 900 });

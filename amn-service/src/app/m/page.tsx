@@ -5,14 +5,10 @@ import { can } from "@/lib/permissions";
 import { OPEN_JOB_STATUS } from "@/lib/constants";
 import { addDays, dateKey, dayRange, formatDateLong, formatTime, monthKey, monthRange } from "@/lib/datetime";
 import { jobListInclude } from "@/lib/jobs";
-import { getOpenShift } from "@/lib/shift";
-import ActionForm from "@/components/ActionForm";
-import SubmitButton from "@/components/SubmitButton";
 import JobList from "@/components/JobList";
 import PushToggle from "@/components/PushToggle";
 import AutoRefresh from "@/components/AutoRefresh";
 import { pushPublicKey } from "@/lib/notify";
-import { endShiftAction, startShiftAction } from "./actions";
 
 export default async function MyJobsPage({ searchParams }: { searchParams: { done?: string } }) {
   const user = await requireUser(can.doFieldWork);
@@ -20,8 +16,7 @@ export default async function MyJobsPage({ searchParams }: { searchParams: { don
   const { start: todayStart, end: todayEnd } = dayRange(today);
   const { start: monthStart, end: monthEnd } = monthRange(monthKey());
 
-  const [shift, openVisit, jobs, completedThisMonth, visitsToday] = await Promise.all([
-    getOpenShift(user.id),
+  const [openVisit, jobs, completedThisMonth, visitsToday] = await Promise.all([
     prisma.jobVisit.findFirst({
       where: { employeeId: user.id, outcome: null, checkOutAt: null },
       include: { job: { include: jobListInclude } },
@@ -53,52 +48,26 @@ export default async function MyJobsPage({ searchParams }: { searchParams: { don
         </div>
       )}
 
-      <section className="card p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-xs text-gray-500">{formatDateLong(new Date())}</div>
-            <div className="font-semibold text-gray-900">
-              {shift ? `เริ่มงานแล้ว ${formatTime(shift.startAt)} น.` : "ยังไม่ได้เริ่มงาน"}
-            </div>
-          </div>
-          <div className="text-right text-xs text-gray-500">
-            เข้าหน้างานวันนี้ {visitsToday} ครั้ง
-            <br />
-            เสร็จเดือนนี้ {completedThisMonth} งาน
-          </div>
+      <section className="card flex items-center justify-between p-4">
+        <div>
+          <div className="text-xs text-gray-500">{formatDateLong(new Date())}</div>
+          <div className="font-semibold text-gray-900">งานของฉัน</div>
         </div>
-        {shift ? (
-          <ActionForm action={endShiftAction} captureLocation confirm="ยืนยันเลิกงาน? ระบบจะหยุดแชร์ตำแหน่ง" className="mt-3">
-            <SubmitButton className="btn btn-secondary w-full" pendingText="กำลังบันทึก…">
-              🏁 เลิกงาน
-            </SubmitButton>
-          </ActionForm>
-        ) : (
-          <ActionForm action={startShiftAction} captureLocation className="mt-3">
-            <SubmitButton className="btn btn-primary btn-lg w-full" pendingText="กำลังบันทึก…">
-              ▶️ เริ่มงาน
-            </SubmitButton>
-            <p className="mt-2 text-center text-xs text-gray-500">
-              เมื่อเริ่มงาน ระบบจะแชร์ตำแหน่งของคุณกับออฟฟิศเฉพาะระหว่างเวลางาน จนกว่าจะกดเลิกงาน
-            </p>
-          </ActionForm>
-        )}
+        <div className="text-right text-xs text-gray-500">
+          เข้าหน้างานวันนี้ {visitsToday} ครั้ง
+          <br />
+          เสร็จเดือนนี้ {completedThisMonth} งาน
+        </div>
       </section>
-
-      {shift && !user.trackingTokenHash && (
-        <Link href="/m/tracker" className="block rounded-xl bg-sky-50 p-3 text-sm text-sky-900">
-          📲 ล็อกจอหรือใช้ Google Maps แล้วตำแหน่งหยุดส่ง? <b className="underline">ตั้งค่าติดตามแม้ปิดหน้าจอ →</b>
-        </Link>
-      )}
 
       {openVisit && (
         <Link href={`/m/jobs/${openVisit.jobId}`} className="block rounded-xl border-2 border-indigo-300 bg-indigo-50 p-4">
-          <div className="text-xs font-semibold text-indigo-700">กำลังทำงานอยู่ · เช็คอิน {formatTime(openVisit.checkInAt)} น.</div>
+          <div className="text-xs font-semibold text-indigo-700">กำลังทำงานอยู่ · ถึงหน้างาน {formatTime(openVisit.checkInAt)} น.</div>
           <div className="mt-1 font-bold text-gray-900">{openVisit.job.machine.site.customer.name}</div>
           <div className="text-sm text-gray-700">
             {openVisit.job.jobNo} · {openVisit.job.machine.machineModel.brand} {openVisit.job.machine.machineModel.model}
           </div>
-          <div className="mt-2 text-sm font-semibold text-indigo-700">✍️ เขียนสรุปงาน / ส่งงาน →</div>
+          <div className="mt-2 text-sm font-semibold text-indigo-700">✍️ เสร็จแล้ว / Hold — เขียนสรุปงาน →</div>
         </Link>
       )}
 

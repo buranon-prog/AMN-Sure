@@ -38,7 +38,7 @@ export default async function OfficeLayout({ children }: { children: React.React
       title: "ทีมช่าง",
       items: [
         { href: "/technicians", label: "ช่าง & ความถนัด", icon: "🧑‍🔧" },
-        ...(can.viewTracking(role) ? [{ href: "/tracking", label: "ติดตามตำแหน่ง", icon: "📍" }] : []),
+        ...(can.viewTracking(role) ? [{ href: "/tracking", label: "ตำแหน่งช่าง (ถึง/เสร็จ)", icon: "📍" }] : []),
       ],
     },
     {

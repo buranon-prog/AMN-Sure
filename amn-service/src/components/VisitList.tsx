@@ -12,6 +12,36 @@ function OutcomeBadge({ v }: { v: Visit }) {
   return <span className="badge bg-gray-100 text-gray-600">ปิดโดยระบบ</span>;
 }
 
+function Where({
+  lat,
+  lng,
+  distance,
+  showDistance,
+}: {
+  lat: number | null;
+  lng: number | null;
+  distance: number | null;
+  showDistance: boolean;
+}) {
+  if (lat == null || lng == null) return <span className="text-orange-700"> · ไม่มีพิกัด</span>;
+  const far = distance != null && distance > CHECKIN_WARN_DISTANCE_M;
+  return (
+    <>
+      {" · "}
+      <a href={pointUrl(lat, lng)} target="_blank" rel="noreferrer" className="link">
+        ดูตำแหน่ง
+      </a>
+      {showDistance && distance != null && (
+        <span className={far ? "font-semibold text-red-600" : ""}>
+          {" "}
+          · ห่างจากหน้างาน {formatDistance(distance)}
+          {far && " ⚠️"}
+        </span>
+      )}
+    </>
+  );
+}
+
 /** รายงานการเข้าหน้างานแต่ละครั้ง (newest first). */
 export default function VisitList({ visits, showDistance = true }: { visits: Visit[]; showDistance?: boolean }) {
   if (visits.length === 0) {
@@ -20,7 +50,6 @@ export default function VisitList({ visits, showDistance = true }: { visits: Vis
   return (
     <ol className="space-y-3">
       {visits.map((v, i) => {
-        const far = v.checkInDistanceM != null && v.checkInDistanceM > CHECKIN_WARN_DISTANCE_M;
         const sameDay = v.checkOutAt && dateKey(v.checkOutAt) === dateKey(v.checkInAt);
         return (
           <li key={v.id} className="rounded-lg border border-gray-200 p-3">
@@ -30,31 +59,21 @@ export default function VisitList({ visits, showDistance = true }: { visits: Vis
               </div>
               <OutcomeBadge v={v} />
             </div>
-            <div className="mt-1 text-xs text-gray-500">
-              เช็คอิน {formatDateTime(v.checkInAt)}
+            <div className="mt-1 space-y-0.5 text-xs text-gray-500">
+              <div>
+                📍 ถึง {formatDateTime(v.checkInAt)}
+                <Where lat={v.checkInLat} lng={v.checkInLng} distance={v.checkInDistanceM} showDistance={showDistance} />
+              </div>
               {v.checkOutAt && (
-                <>
-                  {" "}
-                  → {sameDay ? formatTime(v.checkOutAt) : formatDateTime(v.checkOutAt)} (
+                <div>
+                  {v.outcome === "COMPLETED" ? "✅ เสร็จ" : v.outcome === "HOLD" ? "⏸️ Hold" : "ออก"}{" "}
+                  {sameDay ? formatTime(v.checkOutAt) : formatDateTime(v.checkOutAt)} (อยู่หน้างาน{" "}
                   {formatDuration(v.checkOutAt.getTime() - v.checkInAt.getTime())})
-                </>
+                  {v.outcome && (
+                    <Where lat={v.checkOutLat} lng={v.checkOutLng} distance={v.checkOutDistanceM} showDistance={showDistance} />
+                  )}
+                </div>
               )}
-              {v.checkInLat != null && v.checkInLng != null && (
-                <>
-                  {" · "}
-                  <a href={pointUrl(v.checkInLat, v.checkInLng)} target="_blank" rel="noreferrer" className="link">
-                    พิกัดเช็คอิน
-                  </a>
-                </>
-              )}
-              {showDistance && v.checkInDistanceM != null && (
-                <span className={far ? "font-semibold text-red-600" : ""}>
-                  {" "}
-                  · ห่างจากหน้างาน {formatDistance(v.checkInDistanceM)}
-                  {far && " ⚠️"}
-                </span>
-              )}
-              {v.checkInLat == null && <span className="text-orange-700"> · ไม่มีพิกัดเช็คอิน</span>}
             </div>
             {v.summary && <p className="mt-2 whitespace-pre-wrap text-sm text-gray-800">{v.summary}</p>}
             {v.partsUsed && (

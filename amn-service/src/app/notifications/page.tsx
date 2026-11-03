@@ -14,6 +14,7 @@ const ICON: Record<string, string> = {
   JOB_NEW: "📥",
   JOB_HOLD: "⏸️",
   JOB_COMPLETED: "✅",
+  JOB_ARRIVED: "📍",
 };
 
 export default async function NotificationsPage() {

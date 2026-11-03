@@ -7,14 +7,15 @@ import { actionUser, run, UserError } from "@/lib/session";
 import type { ActionState } from "@/lib/types";
 import { can } from "@/lib/permissions";
 import { WORKABLE_JOB_STATUS, type JobStatus } from "@/lib/constants";
-import { dateKey, formatDateTime, parseLocalDateTime, timeKey } from "@/lib/datetime";
-import { distanceMeters, parseCoord } from "@/lib/geo";
+import { formatDateTime, parseLocalDateTime } from "@/lib/datetime";
+import { distanceMeters, formatDistance, parseCoord } from "@/lib/geo";
 import { jobBrief, logEvent } from "@/lib/jobs";
 import { notify, supervisorIds } from "@/lib/notify";
 import { shortName } from "@/lib/people";
-import { getOpenShift, recordPing } from "@/lib/shift";
-import { purgeOldLocations } from "@/lib/tracking";
 import { oneOf, optNum, optStr, str } from "@/lib/form";
+
+// The phone's location is recorded at exactly two moments, both pressed by
+// the technician: "ถึงหน้างานแล้ว" and "เสร็จแล้ว / Hold". Nothing in between.
 
 function coords(fd: FormData) {
   const lat = parseCoord(fd.get("lat"), "lat");
@@ -23,57 +24,19 @@ function coords(fd: FormData) {
   return { lat: ok ? lat : null, lng: ok ? lng : null, accuracy: ok ? optNum(fd, "accuracy") : null };
 }
 
+function distanceToSite(c: { lat: number | null; lng: number | null }, site: { latitude: number | null; longitude: number | null }) {
+  return c.lat != null && c.lng != null && site.latitude != null && site.longitude != null
+    ? distanceMeters(c.lat, c.lng, site.latitude, site.longitude)
+    : null;
+}
+
 function touch(jobId?: string) {
   revalidatePath("/m", "layout");
   revalidatePath("/jobs");
   revalidatePath("/dashboard");
   revalidatePath("/tracking");
+  revalidatePath("/technicians");
   if (jobId) revalidatePath(`/jobs/${jobId}`);
-}
-
-async function myOpenVisit(employeeId: string) {
-  return prisma.jobVisit.findFirst({
-    where: { employeeId, outcome: null, checkOutAt: null },
-    include: { job: true },
-    orderBy: { checkInAt: "desc" },
-  });
-}
-
-/** ลงเวลาเริ่มงาน — starts location sharing for the rest of the shift. */
-export async function startShiftAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const res = await run(async () => {
-    const user = await actionUser(can.doFieldWork);
-    if (await getOpenShift(user.id)) throw new UserError("คุณเริ่มงานวันนี้ไปแล้ว");
-    const c = coords(fd);
-    await prisma.$transaction(async (tx) => {
-      const shift = await tx.shift.create({
-        data: { employeeId: user.id, workDate: dateKey(), startLat: c.lat, startLng: c.lng },
-      });
-      await recordPing(tx, { employeeId: user.id, latitude: c.lat, longitude: c.lng, accuracy: c.accuracy, source: "SHIFT_START", shiftId: shift.id });
-    });
-    await purgeOldLocations().catch((e) => console.error("purge locations", e));
-    return { ok: true, message: `เริ่มงานเวลา ${timeKey()} น.` };
-  });
-  if (res.ok) touch();
-  return res;
-}
-
-export async function endShiftAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const res = await run(async () => {
-    const user = await actionUser(can.doFieldWork);
-    const shift = await getOpenShift(user.id);
-    if (!shift) throw new UserError("ยังไม่ได้เริ่มงาน");
-    const visit = await myOpenVisit(user.id);
-    if (visit) throw new UserError(`ยังเช็คอินอยู่ที่งาน ${visit.job.jobNo} — กรุณาเขียนสรุปงานก่อนเลิกงาน`);
-    const c = coords(fd);
-    await prisma.$transaction(async (tx) => {
-      await tx.shift.update({ where: { id: shift.id }, data: { endAt: new Date(), endLat: c.lat, endLng: c.lng } });
-      await recordPing(tx, { employeeId: user.id, latitude: c.lat, longitude: c.lng, accuracy: c.accuracy, source: "SHIFT_END", shiftId: shift.id });
-    });
-    return { ok: true, message: `เลิกงานเวลา ${timeKey()} น. — หยุดแชร์ตำแหน่งแล้ว` };
-  });
-  if (res.ok) touch();
-  return res;
 }
 
 async function loadMyJob(jobId: string, employeeId: string) {
@@ -85,34 +48,26 @@ async function loadMyJob(jobId: string, employeeId: string) {
   return job;
 }
 
-/** เช็คอินถึงหน้างาน (with GPS). Starts the shift automatically if needed. */
+/** ถึงหน้างานแล้ว — records arrival time + the phone's location, and tells the office. */
 export async function checkInAction(jobId: string, _prev: ActionState, fd: FormData): Promise<ActionState> {
   const res = await run(async () => {
     const user = await actionUser(can.doFieldWork);
     const job = await loadMyJob(jobId, user.id);
-    if (!WORKABLE_JOB_STATUS.includes(job.status as JobStatus)) throw new UserError("งานนี้ปิดไปแล้ว เช็คอินไม่ได้");
+    if (!WORKABLE_JOB_STATUS.includes(job.status as JobStatus)) throw new UserError("งานนี้ปิดไปแล้ว");
 
-    const open = await myOpenVisit(user.id);
+    const open = await prisma.jobVisit.findFirst({
+      where: { employeeId: user.id, outcome: null, checkOutAt: null },
+      include: { job: true },
+    });
     if (open) {
       throw new UserError(
-        open.jobId === jobId ? "คุณเช็คอินงานนี้อยู่แล้ว" : `คุณยังเช็คอินอยู่ที่งาน ${open.job.jobNo} — ส่งรายงานงานนั้นก่อน`
+        open.jobId === jobId ? "คุณกดถึงหน้างานนี้ไปแล้ว" : `คุณยังอยู่ที่งาน ${open.job.jobNo} — กดเสร็จ/Hold งานนั้นก่อน`
       );
     }
 
     const c = coords(fd);
-    const { site } = job.machine;
-    const distance =
-      c.lat != null && c.lng != null && site.latitude != null && site.longitude != null
-        ? distanceMeters(c.lat, c.lng, site.latitude, site.longitude)
-        : null;
-
+    const distance = distanceToSite(c, job.machine.site);
     await prisma.$transaction(async (tx) => {
-      let shift = await getOpenShift(user.id, tx);
-      if (!shift) {
-        shift = await tx.shift.create({
-          data: { employeeId: user.id, workDate: dateKey(), startLat: c.lat, startLng: c.lng },
-        });
-      }
       await tx.jobVisit.create({
         data: {
           jobId,
@@ -129,17 +84,31 @@ export async function checkInAction(jobId: string, _prev: ActionState, fd: FormD
         jobId,
         user.id,
         "CHECK_IN",
-        c.lat == null ? "เช็คอินหน้างาน (ไม่มีพิกัด GPS)" : `เช็คอินหน้างาน${distance != null ? ` ห่างจากจุดหมาย ${Math.round(distance)} ม.` : ""}`
+        c.lat == null ? "ถึงหน้างาน (ไม่มีพิกัด GPS)" : `ถึงหน้างาน${distance != null ? ` ห่างจากจุดหมาย ${formatDistance(distance)}` : ""}`
       );
-      await recordPing(tx, { employeeId: user.id, latitude: c.lat, longitude: c.lng, accuracy: c.accuracy, source: "CHECK_IN", shiftId: shift.id, jobId });
     });
+
+    const b = await jobBrief(jobId);
+    await notify(
+      b.officeIds,
+      {
+        type: "JOB_ARRIVED",
+        title: `ช่างถึงหน้างานแล้ว ${b.jobNo}`,
+        body: `${shortName(user)} · ${b.where}${
+          c.lat == null ? " · ไม่มีพิกัด" : distance != null ? ` · ห่างจุดหมาย ${formatDistance(distance)}` : ""
+        }`,
+        url: `/jobs/${jobId}`,
+        jobId,
+      },
+      user.id
+    );
   });
   if (res.ok) touch(jobId);
   return res;
 }
 
 /**
- * สรุปงานหลังทำงาน:
+ * เสร็จแล้ว / Hold — records the summary, finish time and the phone's location:
  *   HOLD      — ยังไม่เสร็จ: job goes ON_HOLD (and moves to the next planned visit, if given)
  *   COMPLETED — ส่งงาน: job is closed with this summary as the resolution
  */
@@ -154,7 +123,7 @@ export async function submitReportAction(jobId: string, _prev: ActionState, fd: 
       where: { jobId, employeeId: user.id, outcome: null, checkOutAt: null },
       orderBy: { checkInAt: "desc" },
     });
-    if (!visit) throw new UserError("กรุณากดเช็คอินถึงหน้างานก่อนเขียนสรุปงาน");
+    if (!visit) throw new UserError("กรุณากด “ถึงหน้างานแล้ว” ก่อนเขียนสรุปงาน");
 
     const outcome = oneOf(str(fd, "outcome"), ["HOLD", "COMPLETED"] as const, "ผลการทำงาน");
     const summary = str(fd, "summary");
@@ -166,6 +135,7 @@ export async function submitReportAction(jobId: string, _prev: ActionState, fd: 
     if (outcome === "HOLD" && nextVisitAt && nextVisitAt < new Date()) throw new UserError("วันนัดครั้งถัดไปต้องเป็นเวลาในอนาคต");
 
     const c = coords(fd);
+    const distance = distanceToSite(c, job.machine.site);
     const now = new Date();
     await prisma.$transaction(async (tx) => {
       await tx.jobVisit.update({
@@ -174,6 +144,8 @@ export async function submitReportAction(jobId: string, _prev: ActionState, fd: 
           checkOutAt: now,
           checkOutLat: c.lat,
           checkOutLng: c.lng,
+          checkOutAccuracy: c.accuracy,
+          checkOutDistanceM: distance,
           summary,
           partsUsed,
           outcome,
@@ -183,9 +155,9 @@ export async function submitReportAction(jobId: string, _prev: ActionState, fd: 
       });
       if (outcome === "COMPLETED") {
         await tx.job.update({ where: { id: jobId }, data: { status: "COMPLETED", completedAt: now, resolution: summary } });
-        // Anyone else still checked in on this job is closed off with it.
+        // Anyone else still on site for this job is closed off with it.
         await tx.jobVisit.updateMany({ where: { jobId, outcome: null, checkOutAt: null }, data: { checkOutAt: now } });
-        await logEvent(tx, jobId, user.id, "COMPLETED", "ส่งงาน — งานเสร็จเรียบร้อย");
+        await logEvent(tx, jobId, user.id, "COMPLETED", `ส่งงาน — งานเสร็จเรียบร้อย${c.lat == null ? " (ไม่มีพิกัด GPS)" : ""}`);
       } else {
         await tx.job.update({
           where: { id: jobId },
@@ -199,8 +171,6 @@ export async function submitReportAction(jobId: string, _prev: ActionState, fd: 
           `${holdReason}${nextVisitAt ? ` — นัดเข้าครั้งถัดไป ${formatDateTime(nextVisitAt)}` : ""}`
         );
       }
-      const shift = await getOpenShift(user.id, tx);
-      await recordPing(tx, { employeeId: user.id, latitude: c.lat, longitude: c.lng, accuracy: c.accuracy, source: "CHECK_OUT", shiftId: shift?.id, jobId });
     });
     doneMsg = outcome === "COMPLETED" ? `ส่งงาน ${job.jobNo} เรียบร้อย` : `บันทึก Hold งาน ${job.jobNo} แล้ว`;
 

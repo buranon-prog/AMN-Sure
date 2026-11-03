@@ -2,16 +2,13 @@ import Link from "next/link";
 import { requireUser } from "@/lib/session";
 import { can } from "@/lib/permissions";
 import { shortName } from "@/lib/people";
-import { getOpenShift } from "@/lib/shift";
-import { PING_HEARTBEAT_MS, PING_MIN_MOVE_M, PING_MOVING_MS, TRACKING_END, TRACKING_START } from "@/lib/config";
-import LocationTracker from "@/components/LocationTracker";
 import MobileTabs from "@/components/MobileTabs";
 import Bell from "@/components/Bell";
 import { unreadCount } from "@/lib/notify";
 
 export default async function MobileLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser(can.doFieldWork);
-  const [shift, unread] = await Promise.all([getOpenShift(user.id), unreadCount(user.id)]);
+  const unread = await unreadCount(user.id);
 
   return (
     <div className="mx-auto flex min-h-screen max-w-lg flex-col bg-gray-50">
@@ -30,13 +27,6 @@ export default async function MobileLayout({ children }: { children: React.React
             <Bell count={unread} />
           </div>
         </div>
-        <LocationTracker
-          active={!!shift}
-          movingMs={PING_MOVING_MS}
-          heartbeatMs={PING_HEARTBEAT_MS}
-          minMoveM={PING_MIN_MOVE_M}
-          windowLabel={`${TRACKING_START}–${TRACKING_END} น.`}
-        />
       </header>
       <main className="flex-1 px-4 pb-24 pt-4">{children}</main>
       <MobileTabs />

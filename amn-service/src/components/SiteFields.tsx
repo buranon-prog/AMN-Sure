@@ -30,7 +30,7 @@ export default function SiteFields({ site }: { site?: SiteDefaults }) {
           <input name="longitude" inputMode="decimal" defaultValue={site?.longitude ?? ""} placeholder="ลองจิจูด เช่น 100.5018" className="input" />
         </div>
         <input name="coords" placeholder="หรือวางพิกัด / ลิงก์ Google Maps ที่มีพิกัด" className="input mt-2" />
-        <p className="mt-1 text-xs text-gray-500">ใช้นำทางช่าง และตรวจว่าช่างเช็คอินที่หน้างานจริง</p>
+        <p className="mt-1 text-xs text-gray-500">ใช้นำทางช่าง และวัดระยะตอนช่างกด “ถึงหน้างาน” / “เสร็จงาน” ว่าอยู่ที่หน้างานจริง</p>
       </div>
       <div>
         <label className="label">ผู้ติดต่อหน้างาน</label>

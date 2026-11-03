@@ -195,6 +195,8 @@ async function main() {
     lng?: number;
     dist?: number;
   };
+  const siteOf = async (machineCode: string) =>
+    (await prisma.machine.findUniqueOrThrow({ where: { id: machine[machineCode] }, include: { site: true } })).site;
   async function job(opts: {
     machine: string;
     type?: string;
@@ -232,17 +234,25 @@ async function main() {
       await prisma.jobAssignment.create({ data: { jobId: j.id, employeeId: emp[code], isLead: i === 0, assignedById: sup } });
       await prisma.jobEvent.create({ data: { jobId: j.id, actorId: sup, type: "ASSIGNED", message: `จ่ายงานให้ ${code}`, createdAt: new Date(created.getTime() + HOUR) } });
     }
+    const site = await siteOf(opts.machine);
     for (const v of opts.visits ?? []) {
+      // Demo phones report a point ~30–60 m from the site, as real GPS would.
+      const lat = v.lat ?? (site.latitude != null ? site.latitude + 0.0003 : null);
+      const lng = v.lng ?? (site.longitude != null ? site.longitude + 0.0002 : null);
       await prisma.jobVisit.create({
         data: {
           jobId: j.id,
           employeeId: emp[v.who],
           checkInAt: v.inAt,
-          checkInLat: v.lat ?? null,
-          checkInLng: v.lng ?? null,
-          checkInAccuracy: v.lat ? 12 : null,
-          checkInDistanceM: v.dist ?? null,
+          checkInLat: lat,
+          checkInLng: lng,
+          checkInAccuracy: lat != null ? 12 : null,
+          checkInDistanceM: v.dist ?? (lat != null ? 40 : null),
           checkOutAt: v.outAt ?? null,
+          checkOutLat: v.outAt && lat != null ? lat - 0.0001 : null,
+          checkOutLng: v.outAt && lng != null ? lng : null,
+          checkOutAccuracy: v.outAt && lat != null ? 15 : null,
+          checkOutDistanceM: v.outAt && lat != null ? 30 : null,
           summary: v.summary ?? null,
           outcome: v.outcome ?? null,
           holdReason: v.hold ?? null,
@@ -323,33 +333,6 @@ async function main() {
       visits,
       resolution: d.fix,
     });
-  }
-
-  // ---------- Today's shifts + location trail ----------
-  const startAt = new Date(now - 3 * HOUR);
-  const trails: Record<string, [number, number][]> = {
-    TEC001: [[13.745, 100.534], [13.742, 100.541], [13.739, 100.549], [13.7372, 100.5562], [13.7368, 100.5598]],
-    TEC002: [[13.92, 100.6], [13.95, 100.607], [13.975, 100.613], [13.9873, 100.6168]],
-    SUP001: [[13.7563, 100.5018], [13.756, 100.502]],
-  };
-  for (const [code, pts] of Object.entries(trails)) {
-    const shift = await prisma.shift.create({
-      data: { employeeId: emp[code], workDate: dateKey(), startAt, startLat: pts[0][0], startLng: pts[0][1] },
-    });
-    for (const [i, [lat, lng]] of pts.entries()) {
-      await prisma.locationPing.create({
-        data: {
-          employeeId: emp[code],
-          shiftId: shift.id,
-          latitude: lat,
-          longitude: lng,
-          accuracy: 15,
-          source: i === 0 ? "SHIFT_START" : "TRACKING",
-          recordedAt: new Date(startAt.getTime() + ((now - 5 * MIN - startAt.getTime()) * i) / Math.max(1, pts.length - 1)),
-          jobId: code === "TEC002" && i === pts.length - 1 ? inProgress.id : null,
-        },
-      });
-    }
   }
 
   await prisma.notification.create({

@@ -12,7 +12,7 @@ export const ROLE_HINT: Record<Role, string> = {
   MANAGER: "ทำได้ทุกอย่าง รวมถึงจัดการบัญชีพนักงาน",
   SUPERVISOR: "จ่ายงานให้ช่างตามความถนัด, ตั้งค่าความถนัด, รับงานเองได้",
   ADMIN: "ลงงาน (ลูกค้า เครื่อง สถานที่ วันเวลา), จัดการข้อมูลลูกค้า",
-  TECHNICIAN: "เห็นเฉพาะงานของตัวเองบนมือถือ, เช็คอิน, เขียนสรุปงาน",
+  TECHNICIAN: "เห็นเฉพาะงานของตัวเองบนมือถือ, กดถึงหน้างาน/เสร็จงาน (แชร์ตำแหน่ง), เขียนสรุปงาน",
 };
 
 export const JOB_STATUS = ["NEW", "ASSIGNED", "IN_PROGRESS", "ON_HOLD", "COMPLETED", "CANCELLED"] as const;
@@ -93,7 +93,7 @@ export const EVENT_LABEL: Record<string, string> = {
   UPDATED: "แก้ไขงาน",
   ASSIGNED: "จ่ายงาน",
   UNASSIGNED: "ถอนช่าง",
-  CHECK_IN: "เช็คอินหน้างาน",
+  CHECK_IN: "ถึงหน้างาน",
   HOLD: "Hold",
   COMPLETED: "ส่งงาน",
   RESCHEDULED: "เลื่อนนัด",
@@ -101,13 +101,5 @@ export const EVENT_LABEL: Record<string, string> = {
   REOPENED: "เปิดงานใหม่",
 };
 
-export const PING_SOURCE_LABEL: Record<string, string> = {
-  TRACKING: "แอปบนเว็บ",
-  BACKGROUND_APP: "แอปติดตามเบื้องหลัง",
-  SHIFT_START: "เริ่มงาน",
-  SHIFT_END: "เลิกงาน",
-  CHECK_IN: "เช็คอินหน้างาน",
-  CHECK_OUT: "ส่งรายงาน",
-};
 
 export const MIN_PASSWORD = 8;

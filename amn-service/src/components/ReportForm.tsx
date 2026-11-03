@@ -89,7 +89,7 @@ export default function ReportForm({
         className={`btn btn-lg w-full ${outcome === "HOLD" ? "btn-warn" : "btn-primary"}`}
         pendingText="กำลังส่ง…"
       >
-        {outcome === "HOLD" ? "บันทึก Hold" : outcome === "COMPLETED" ? "ส่งงาน" : "บันทึกสรุปงาน"}
+        {outcome === "HOLD" ? "⏸️ บันทึก Hold" : outcome === "COMPLETED" ? "✅ เสร็จแล้ว — ส่งงาน" : "บันทึกสรุปงาน"}
       </SubmitButton>
     </ActionForm>
   );

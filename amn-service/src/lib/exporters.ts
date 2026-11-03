@@ -59,7 +59,7 @@ export const EXPORTERS: Exporter[] = [
   {
     key: "visits",
     label: "รายงานการเข้าหน้างาน",
-    description: "ทุกการเช็คอิน/สรุปงาน (ประวัติการซ่อมของเครื่องและของพนักงาน)",
+    description: "ทุกการเข้าหน้างาน: เวลา/ตำแหน่งตอนกดถึงและเสร็จ + สรุปงาน (ประวัติการซ่อมของเครื่องและของพนักงาน)",
     allowed: can.exportData,
     fetch: async () =>
       (await prisma.jobVisit.findMany({
@@ -71,11 +71,14 @@ export const EXPORTERS: Exporter[] = [
       c("รหัสเครื่อง", (r) => any(r).job.machine.machineCode),
       c("รหัสพนักงาน", (r) => any(r).employee.employeeCode),
       c("ช่าง", (r) => fullName(any(r).employee)),
-      f("checkInAt", "เช็คอิน"),
-      f("checkInLat", "ละติจูดเช็คอิน"),
-      f("checkInLng", "ลองจิจูดเช็คอิน"),
-      f("checkInDistanceM", "ห่างจากหน้างาน (ม.)"),
-      f("checkOutAt", "ส่งรายงาน"),
+      f("checkInAt", "ถึงหน้างาน"),
+      f("checkInLat", "ละติจูดตอนถึง"),
+      f("checkInLng", "ลองจิจูดตอนถึง"),
+      f("checkInDistanceM", "ห่างจากหน้างานตอนถึง (ม.)"),
+      f("checkOutAt", "เสร็จ/Hold เมื่อ"),
+      f("checkOutLat", "ละติจูดตอนเสร็จ"),
+      f("checkOutLng", "ลองจิจูดตอนเสร็จ"),
+      f("checkOutDistanceM", "ห่างจากหน้างานตอนเสร็จ (ม.)"),
       f("summary", "สรุปงาน"),
       f("partsUsed", "อะไหล่"),
       f("outcome", "ผล"),
@@ -168,43 +171,6 @@ export const EXPORTERS: Exporter[] = [
           .skills.map((s: { machineModel: { brand: string; model: string }; level: number }) => `${s.machineModel.brand} ${s.machineModel.model}:${s.level}`)
           .join("; ")
       ),
-    ],
-  },
-  {
-    key: "shifts",
-    label: "เวลาเริ่ม-เลิกงาน",
-    description: "การลงเวลาเริ่มงาน/เลิกงานจากมือถือ",
-    allowed: can.exportData,
-    fetch: async () => (await prisma.shift.findMany({ include: { employee: true }, orderBy: { startAt: "desc" } })) as unknown as Row[],
-    columns: [
-      c("รหัสพนักงาน", (r) => any(r).employee.employeeCode),
-      c("ชื่อ", (r) => fullName(any(r).employee)),
-      f("workDate", "วันที่"),
-      f("startAt", "เริ่มงาน"),
-      f("endAt", "เลิกงาน"),
-      f("autoClosed", "ปิดอัตโนมัติ"),
-    ],
-  },
-  {
-    key: "location-pings",
-    label: "ประวัติตำแหน่ง (ข้อมูลส่วนบุคคล)",
-    description: "พิกัดระหว่างเวลางานทั้งหมด — เฉพาะผู้จัดการ",
-    allowed: can.exportLocations,
-    fetch: async () =>
-      (await prisma.locationPing.findMany({ include: { employee: true, job: true }, orderBy: { recordedAt: "desc" } })) as unknown as Row[],
-    columns: [
-      c("รหัสพนักงาน", (r) => any(r).employee.employeeCode),
-      c("ชื่อ", (r) => fullName(any(r).employee)),
-      f("recordedAt", "เวลา"),
-      f("latitude", "ละติจูด"),
-      f("longitude", "ลองจิจูด"),
-      f("accuracy", "ความแม่นยำ (ม.)"),
-      f("speedKmh", "ความเร็ว (กม./ชม.)"),
-      f("heading", "ทิศทาง (องศา)"),
-      f("battery", "แบตเตอรี่ (%)"),
-      f("source", "ที่มา"),
-      f("receivedAt", "เซิร์ฟเวอร์ได้รับเมื่อ"),
-      c("งาน", (r) => any(r).job?.jobNo ?? ""),
     ],
   },
 ];

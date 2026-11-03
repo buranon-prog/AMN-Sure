@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { can } from "@/lib/permissions";
 import { OPEN_JOB_STATUS } from "@/lib/constants";
-import { dateKey, formatTime, monthKey, monthRange } from "@/lib/datetime";
+import { dateKey, dayRange, formatTime, monthKey, monthRange } from "@/lib/datetime";
 import { fullName } from "@/lib/people";
 import PageHeader from "@/components/PageHeader";
 import { RoleBadge, SkillDots } from "@/components/Badges";
@@ -12,7 +12,7 @@ export default async function TechniciansPage() {
   await requireUser(can.useOffice);
   const { start, end } = monthRange(monthKey());
 
-  const [techs, models, assignments, shifts] = await Promise.all([
+  const [techs, models, assignments, todayVisits] = await Promise.all([
     prisma.employee.findMany({
       where: { active: true, role: { in: ["TECHNICIAN", "SUPERVISOR"] } },
       include: { skills: true },
@@ -25,7 +25,11 @@ export default async function TechniciansPage() {
       },
       select: { employeeId: true, job: { select: { status: true } } },
     }),
-    prisma.shift.findMany({ where: { workDate: dateKey() }, orderBy: { startAt: "desc" } }),
+    prisma.jobVisit.findMany({
+      where: { checkInAt: { gte: dayRange(dateKey()).start } },
+      include: { job: { select: { jobNo: true } } },
+      orderBy: { checkInAt: "desc" },
+    }),
   ]);
 
   const stat = (id: string) => {
@@ -56,7 +60,7 @@ export default async function TechniciansPage() {
           <tbody>
             {techs.map((t) => {
               const s = stat(t.id);
-              const shift = shifts.find((x) => x.employeeId === t.id);
+              const visit = todayVisits.find((x) => x.employeeId === t.id); // latest press today
               return (
                 <tr key={t.id}>
                   <td>
@@ -72,14 +76,16 @@ export default async function TechniciansPage() {
                     <RoleBadge role={t.role} />
                   </td>
                   <td className="whitespace-nowrap text-sm">
-                    {!shift ? (
-                      <span className="text-gray-400">ยังไม่เริ่มงาน</span>
-                    ) : shift.endAt ? (
-                      <span className="text-gray-500">
-                        {formatTime(shift.startAt)}–{formatTime(shift.endAt)}
+                    {!visit ? (
+                      <span className="text-gray-400">ยังไม่ถึงหน้างาน</span>
+                    ) : !visit.checkOutAt ? (
+                      <span className="text-indigo-700">
+                        ● อยู่หน้างาน {visit.job.jobNo} (ถึง {formatTime(visit.checkInAt)})
                       </span>
                     ) : (
-                      <span className="text-emerald-700">● ทำงานอยู่ (เริ่ม {formatTime(shift.startAt)})</span>
+                      <span className="text-gray-600">
+                        {visit.outcome === "HOLD" ? "Hold" : "เสร็จ"} {visit.job.jobNo} {formatTime(visit.checkOutAt)}
+                      </span>
                     )}
                   </td>
                   <td className="num">{s.open}</td>

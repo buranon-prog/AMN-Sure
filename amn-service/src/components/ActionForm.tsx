@@ -8,30 +8,41 @@ type Props = {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
   children: React.ReactNode;
   className?: string;
-  /** Read the phone's GPS and send it as lat / lng / accuracy fields. */
+  /** Read the phone's location and send it as lat / lng / accuracy fields (permission required). */
   captureLocation?: boolean;
   /** Ask before submitting. */
   confirm?: string;
   resetOnSuccess?: boolean;
 };
 
-function getPosition(): Promise<GeolocationPosition> {
+function getPosition(highAccuracy: boolean, timeout: number): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
     if (!("geolocation" in navigator)) {
       reject(new Error("อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง"));
       return;
     }
     navigator.geolocation.getCurrentPosition(resolve, reject, {
-      enableHighAccuracy: true,
-      timeout: 15000,
+      enableHighAccuracy: highAccuracy,
+      timeout,
       maximumAge: 30000,
     });
   });
 }
 
+/** GPS first; indoors (hospital buildings) fall back to the faster network-based fix. */
+async function locate(): Promise<GeolocationPosition> {
+  try {
+    return await getPosition(true, 12000);
+  } catch (err) {
+    if ((err as GeolocationPositionError)?.code === 1) throw err; // permission denied: don't retry
+    return getPosition(false, 10000);
+  }
+}
+
 function geoErrorText(err: unknown) {
   const code = (err as GeolocationPositionError)?.code;
-  if (code === 1) return "ไม่ได้รับอนุญาตให้เข้าถึงตำแหน่ง (เปิดสิทธิ์ Location ให้เบราว์เซอร์)";
+  if (code === 1)
+    return "ต้องอนุญาตให้แอปใช้ตำแหน่ง (Location) ก่อน — เปิดสิทธิ์ในการตั้งค่าเบราว์เซอร์/โทรศัพท์ แล้วกดใหม่อีกครั้ง";
   if (code === 2) return "หาสัญญาณ GPS ไม่ได้";
   if (code === 3) return "หาตำแหน่งนานเกินไป";
   return (err as Error)?.message || "ระบุตำแหน่งไม่ได้";
@@ -74,7 +85,7 @@ export default function ActionForm({ action, children, className, captureLocatio
     setLocating(true);
     setGeoNote(null);
 
-    getPosition()
+    locate()
       .then((pos) => {
         setField(form, "lat", String(pos.coords.latitude));
         setField(form, "lng", String(pos.coords.longitude));
@@ -87,7 +98,11 @@ export default function ActionForm({ action, children, className, captureLocatio
         setField(form, "accuracy", "");
         const text = geoErrorText(err);
         setGeoNote(text);
-        return window.confirm(`${text}\n\nต้องการส่งโดยไม่มีพิกัดหรือไม่?`);
+        // Sharing location is required: no permission / no geolocation → stop here.
+        const code = (err as GeolocationPositionError)?.code;
+        if (code === 1 || !("geolocation" in navigator)) return false;
+        // Permission given but no fix (e.g. deep inside a building): send, flagged "ไม่มีพิกัด".
+        return window.confirm(`${text}\n\nส่งโดยไม่มีพิกัดได้ แต่ออฟฟิศจะเห็นว่า “ไม่มีพิกัด” — ต้องการส่งหรือไม่?`);
       })
       .then((go) => {
         setLocating(false);
@@ -108,8 +123,12 @@ export default function ActionForm({ action, children, className, captureLocatio
         </>
       )}
       {children}
-      {locating && <p className="mt-2 text-sm text-sky-700">📍 กำลังระบุตำแหน่ง GPS…</p>}
-      {geoNote && !locating && <p className="mt-2 text-xs text-orange-700">{geoNote}</p>}
+      {locating && <p className="mt-2 text-sm text-sky-700">📍 กำลังระบุตำแหน่ง…</p>}
+      {geoNote && !locating && (
+        <p role="alert" className="mt-2 rounded-lg bg-orange-50 px-3 py-2 text-sm text-orange-800">
+          {geoNote}
+        </p>
+      )}
       {state.error && (
         <p role="alert" className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           {state.error}

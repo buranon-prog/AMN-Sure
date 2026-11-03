@@ -17,11 +17,10 @@ export const can = {
   assignJobs: is("MANAGER", "SUPERVISOR"),
   manageCustomers: is("MANAGER", "SUPERVISOR", "ADMIN"),
   manageSkills: is("MANAGER", "SUPERVISOR"),
+  /** Map of where technicians pressed ถึงหน้างาน / เสร็จงาน. */
   viewTracking: is("MANAGER", "SUPERVISOR", "ADMIN"),
   manageEmployees: is("MANAGER"),
   exportData: is("MANAGER", "SUPERVISOR", "ADMIN"),
-  /** Location history is personal data — narrower than the live map. */
-  exportLocations: is("MANAGER"),
   /** Can be assigned to jobs and use the mobile field screens. */
   doFieldWork: is("SUPERVISOR", "TECHNICIAN"),
 };
@@ -37,9 +36,8 @@ export const PERMISSION_MATRIX: { label: string; check: (role: string) => boolea
   { label: "จ่ายงานให้ช่าง (เลือกตามความถนัด)", check: can.assignJobs },
   { label: "เพิ่ม/แก้ไข ลูกค้า สถานที่ เครื่อง", check: can.manageCustomers },
   { label: "ตั้งค่าความถนัดของช่าง", check: can.manageSkills },
-  { label: "ดูตำแหน่งช่างแบบสด (Tracking)", check: can.viewTracking },
+  { label: "ดูตำแหน่งที่ช่างกดถึงหน้างาน / เสร็จงาน", check: can.viewTracking },
   { label: "Export ข้อมูลงาน/ลูกค้า", check: can.exportData },
-  { label: "Export ประวัติตำแหน่ง (ข้อมูลส่วนบุคคล)", check: can.exportLocations },
   { label: "จัดการบัญชีพนักงาน / สิทธิ์ / รีเซ็ตรหัสผ่าน", check: can.manageEmployees },
-  { label: "รับงาน: เห็นงานของตัวเองบนมือถือ เช็คอิน เขียนสรุปงาน", check: can.doFieldWork },
+  { label: "รับงาน: เห็นงานของตัวเองบนมือถือ กดถึงหน้างาน/เสร็จงาน เขียนสรุปงาน", check: can.doFieldWork },
 ];

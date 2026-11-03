@@ -130,18 +130,22 @@ export default async function MobileJobPage({ params }: { params: { id: string }
       {workable && !myOpen && (
         <section className="card p-4">
           <ActionForm action={checkInAction.bind(null, job.id)} captureLocation>
-            <SubmitButton className="btn btn-primary btn-lg w-full" pendingText="กำลังเช็คอิน…">
-              📍 เช็คอินถึงหน้างาน
+            <SubmitButton className="btn btn-primary btn-lg w-full" pendingText="กำลังบันทึก…">
+              📍 ถึงหน้างานแล้ว
             </SubmitButton>
-            <p className="mt-2 text-center text-xs text-gray-500">กดเมื่อถึงหน้างานแล้ว ระบบจะบันทึกเวลาและพิกัด</p>
+            <p className="mt-2 text-center text-xs text-gray-500">
+              กดเมื่อถึงหน้างาน — ระบบจะบันทึกเวลาและตำแหน่งจากโทรศัพท์ แล้วแจ้งออฟฟิศว่าคุณถึงแล้ว
+            </p>
           </ActionForm>
         </section>
       )}
 
       {workable && myOpen && (
         <section className="card border-indigo-200 p-4">
-          <h2 className="mb-1 font-semibold text-gray-900">สรุปงาน</h2>
-          <p className="mb-3 text-xs text-gray-500">เช็คอินเมื่อ {formatTime(myOpen.checkInAt)} น.</p>
+          <h2 className="mb-1 font-semibold text-gray-900">สรุปงาน → เสร็จแล้ว / Hold</h2>
+          <p className="mb-3 text-xs text-gray-500">
+            ถึงหน้างานเมื่อ {formatTime(myOpen.checkInAt)} น. · เมื่อกดส่ง ระบบจะบันทึกตำแหน่งตอนเสร็จงานด้วย
+          </p>
           <ReportForm action={submitReportAction.bind(null, job.id)} />
         </section>
       )}

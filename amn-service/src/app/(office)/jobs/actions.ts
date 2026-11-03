@@ -245,7 +245,7 @@ export async function unassignAction(jobId: string, employeeId: string, _prev: A
     });
     if (!assignment) throw new UserError("ช่างคนนี้ไม่ได้อยู่ในงานนี้");
     const onSite = await prisma.jobVisit.count({ where: { jobId, employeeId, outcome: null, checkOutAt: null } });
-    if (onSite > 0) throw new UserError("ช่างคนนี้กำลังอยู่หน้างาน (เช็คอินแล้ว) ถอนออกไม่ได้จนกว่าจะส่งรายงาน");
+    if (onSite > 0) throw new UserError("ช่างคนนี้กำลังอยู่หน้างาน (กดถึงแล้ว) ถอนออกไม่ได้จนกว่าจะกดเสร็จ/Hold");
 
     await prisma.$transaction(async (tx) => {
       await tx.jobAssignment.delete({ where: { id: assignment.id } });

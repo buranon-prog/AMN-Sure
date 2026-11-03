@@ -7,7 +7,7 @@
 // Who is who:
 //   ADMIN      แอดมิน      — ลงงาน: ลูกค้า/เครื่อง/เข้าที่ไหน/กี่โมง
 //   SUPERVISOR หัวหน้าช่าง — จ่ายงาน: เลือกช่างตามความถนัด (และรับงานเองได้)
-//   TECHNICIAN ช่าง        — เห็นเฉพาะงานของตัวเองบนมือถือ, เช็คอิน, เขียนสรุปงาน
+//   TECHNICIAN ช่าง        — เห็นเฉพาะงานของตัวเองบนมือถือ, กดถึงหน้างาน/เสร็จงาน (แชร์ตำแหน่ง), เขียนสรุปงาน
 //   MANAGER    ผู้จัดการ    — ทำได้ทุกอย่าง + จัดการบัญชีพนักงาน
 
 generator client {
@@ -37,11 +37,6 @@ model Employee {
   failedLoginCount  Int       @default(0)
   lockedUntil       DateTime?
   passwordChangedAt DateTime?
-  // Personal token for a background tracking app (OwnTracks / Traccar Client).
-  // Only the SHA-256 hash is stored; the hint is the last 4 characters.
-  trackingTokenHash String?   @unique
-  trackingTokenHint String?
-  trackingTokenAt   DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -52,8 +47,6 @@ model Employee {
   jobsAssignedBy Job[]              @relation("JobAssignedBy")
   visits         JobVisit[]
   events         JobEvent[]
-  shifts         Shift[]
-  locationPings  LocationPing[]
   notifications  Notification[]
   pushSubs       PushSubscription[]
 }
@@ -180,7 +173,6 @@ model Job {
   assignments   JobAssignment[]
   visits        JobVisit[]
   events        JobEvent[]
-  pings         LocationPing[]
   notifications Notification[]
 
   @@index([status])
@@ -204,28 +196,33 @@ model JobAssignment {
   @@index([employeeId])
 }
 
-// One trip to site by one technician. Check-in (GPS) → สรุปงาน →
-// outcome HOLD (ยังไม่เสร็จ: job goes ON_HOLD) or COMPLETED (ส่งงาน).
-// outcome stays null while the technician is still on site.
+// One trip to site by one technician — and the ONLY place the phone's
+// location is recorded:
+//   "ถึงหน้างานแล้ว" → checkIn* (time + GPS + distance from the site)
+//   "เสร็จแล้ว" / "Hold" → checkOut* (time + GPS + distance) with the สรุปงาน
+// outcome HOLD (ยังไม่เสร็จ: job goes ON_HOLD) or COMPLETED (ส่งงาน);
+// it stays null while the technician is still on site.
 model JobVisit {
-  id               String    @id @default(cuid())
-  jobId            String
-  employeeId       String
-  checkInAt        DateTime  @default(now())
-  checkInLat       Float?
-  checkInLng       Float?
-  checkInAccuracy  Float?
-  checkInDistanceM Float? // distance from the site's coordinates, when both are known
-  checkOutAt       DateTime?
-  checkOutLat      Float?
-  checkOutLng      Float?
-  summary          String?
-  partsUsed        String?
-  outcome          String? // HOLD | COMPLETED
-  holdReason       String?
-  nextVisitAt      DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  jobId             String
+  employeeId        String
+  checkInAt         DateTime  @default(now())
+  checkInLat        Float?
+  checkInLng        Float?
+  checkInAccuracy   Float?
+  checkInDistanceM  Float? // distance from the site's coordinates, when both are known
+  checkOutAt        DateTime?
+  checkOutLat       Float?
+  checkOutLng       Float?
+  checkOutAccuracy  Float?
+  checkOutDistanceM Float? // distance from the site when pressing เสร็จ/Hold
+  summary           String?
+  partsUsed         String?
+  outcome           String? // HOLD | COMPLETED
+  holdReason        String?
+  nextVisitAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   job      Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   employee Employee @relation(fields: [employeeId], references: [id])
@@ -249,51 +246,6 @@ model JobEvent {
   @@index([jobId, createdAt])
 }
 
-// ---------- Work time & location ----------
-
-// ลงเวลาเริ่มงาน/เลิกงานจากมือถือ — location tracking only runs inside an open shift.
-model Shift {
-  id         String    @id @default(cuid())
-  employeeId String
-  workDate   String // YYYY-MM-DD in Asia/Bangkok
-  startAt    DateTime  @default(now())
-  startLat   Float?
-  startLng   Float?
-  endAt      DateTime?
-  endLat     Float?
-  endLng     Float?
-  autoClosed Boolean   @default(false)
-
-  employee Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  pings    LocationPing[]
-
-  @@index([employeeId, workDate])
-}
-
-model LocationPing {
-  id         String   @id @default(cuid())
-  employeeId String
-  shiftId    String?
-  jobId      String?
-  latitude   Float
-  longitude  Float
-  accuracy   Float? // metres
-  speedKmh   Float?
-  heading    Float? // degrees, 0 = north
-  battery    Float? // percent 0–100
-  source     String   @default("TRACKING") // TRACKING (web app) | BACKGROUND_APP | SHIFT_START | SHIFT_END | CHECK_IN | CHECK_OUT
-  recordedAt DateTime @default(now()) // when the phone took the fix
-  receivedAt DateTime @default(now()) // when the server stored it — drives the live stream
-
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  shift    Shift?   @relation(fields: [shiftId], references: [id], onDelete: SetNull)
-  job      Job?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
-
-  @@index([employeeId, recordedAt])
-  @@index([receivedAt])
-  @@index([recordedAt])
-}
-
 // ---------- Notifications ----------
 
 // In-app notification (bell). Each one is also pushed to the employee's
@@ -302,7 +254,7 @@ model Notification {
   id         String    @id @default(cuid())
   employeeId String
   jobId      String?
-  type       String // JOB_ASSIGNED | JOB_UNASSIGNED | JOB_RESCHEDULED | JOB_CANCELLED | JOB_NEW | JOB_HOLD | JOB_COMPLETED
+  type       String // JOB_ASSIGNED | JOB_UNASSIGNED | JOB_RESCHEDULED | JOB_CANCELLED | JOB_NEW | JOB_ARRIVED | JOB_HOLD | JOB_COMPLETED
   title      String
   body       String
   url        String
