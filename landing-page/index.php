@@ -200,7 +200,7 @@ $heroSlides = loadHeroSlides();
   .burger span{width:26px;height:2px;background:var(--green-dark);display:block;}
 
   /* ---- hero slider (banner images) ---- */
-  .hero-slider{position:relative;overflow:hidden;background:var(--green-mist);}
+  .hero-slider{position:relative;overflow:hidden;background:linear-gradient(120deg,var(--green-dark),#0f2a20);}
   .hero-slider-track{display:flex;transition:transform .6s var(--ease);}
   .hero-slide{flex:none;width:100%;aspect-ratio:16/6;display:block;}
   .hero-slide img{width:100%;height:100%;object-fit:cover;}
