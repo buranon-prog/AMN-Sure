@@ -34,3 +34,11 @@ function saveContent(string $key, string $valueTh, ?string $valueEn = null): voi
     $stmt = getDb()->prepare('REPLACE INTO site_content (content_key, value_th, value_en) VALUES (?, ?, ?)');
     $stmt->execute([$key, $valueTh, $valueEn]);
 }
+
+/**
+ * โหลดรายการสไลด์รูปภาพด้านบนสุดของหน้าแรก เรียงตาม sort_order
+ */
+function loadHeroSlides(): array {
+    $stmt = getDb()->query('SELECT id, image_path, link_url FROM hero_slides ORDER BY sort_order, id');
+    return $stmt->fetchAll();
+}

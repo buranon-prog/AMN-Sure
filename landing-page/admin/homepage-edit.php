@@ -109,10 +109,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // อัปเดตลิงก์ของสไลด์ที่มีอยู่ + ลบสไลด์ที่ติ๊กเลือก
+    $existingSlides = getDb()->query('SELECT id, image_path FROM hero_slides')->fetchAll();
+    $removeSlideIds = array_map('intval', $_POST['remove_slides'] ?? []);
+    foreach ($existingSlides as $slide) {
+        if (in_array((int) $slide['id'], $removeSlideIds, true)) {
+            getDb()->prepare('DELETE FROM hero_slides WHERE id = ?')->execute([$slide['id']]);
+            $filePath = __DIR__ . '/../' . $slide['image_path'];
+            if (is_file($filePath)) {
+                unlink($filePath);
+            }
+        } else {
+            $linkUrl = trim($_POST['slide_link_' . $slide['id']] ?? '');
+            getDb()->prepare('UPDATE hero_slides SET link_url = ? WHERE id = ?')
+                ->execute([$linkUrl !== '' ? $linkUrl : null, $slide['id']]);
+        }
+    }
+
+    // เพิ่มสไลด์ใหม่ที่อัปโหลดเข้ามา
+    try {
+        $newSlidePaths = handleMultipleImageUploads('new_slides');
+        if ($newSlidePaths) {
+            $maxOrder = (int) getDb()->query('SELECT COALESCE(MAX(sort_order), -1) FROM hero_slides')->fetchColumn();
+            $ins = getDb()->prepare('INSERT INTO hero_slides (image_path, sort_order) VALUES (?, ?)');
+            foreach ($newSlidePaths as $path) {
+                $maxOrder++;
+                $ins->execute([$path, $maxOrder]);
+            }
+        }
+    } catch (RuntimeException $e) {
+        $error = $e->getMessage();
+    }
+
     if ($error === '') {
         $saved = true;
     }
 }
+
+$heroSlides = loadHeroSlides();
 
 // โหลดค่าปัจจุบันใหม่เสมอ (รวมค่าที่เพิ่งบันทึกไป)
 $content = [];
@@ -161,6 +195,33 @@ require __DIR__ . '/_layout_head.php';
         <img src="../line-qr.png?t=<?= time() ?>" alt="" style="height:100px;display:block;margin-bottom:10px;" onerror="this.style.display='none';">
         <input type="file" name="line_qr" accept="image/png">
       </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:16px;color:var(--green-dark);">สไลด์รูปภาพด้านบนสุดของหน้าแรก</h3>
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:18px;">อัปโหลดรูปแบนเนอร์สำเร็จรูป (ออกแบบเนื้อหา/ตัวหนังสือมาในรูปแล้ว) ระบบจะเลื่อนสไลด์ให้อัตโนมัติทุก 5 วินาที ถ้ามีมากกว่า 1 รูป — ไม่ใส่รูปเลยก็ได้ ส่วนนี้จะไม่แสดงบนเว็บ</p>
+
+    <?php if ($heroSlides): ?>
+      <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:22px;">
+        <?php foreach ($heroSlides as $slide): ?>
+          <div style="width:220px;border:1px solid var(--green-soft);border-radius:12px;padding:12px;">
+            <img src="../<?= h($slide['image_path']) ?>" alt="" style="width:100%;aspect-ratio:16/6;object-fit:cover;border-radius:8px;margin-bottom:10px;">
+            <div class="form-field" style="margin-bottom:10px;">
+              <label style="font-size:12px;">ลิงก์เมื่อคลิก (ไม่บังคับ)</label>
+              <input type="text" name="slide_link_<?= (int) $slide['id'] ?>" value="<?= h($slide['link_url'] ?? '') ?>" placeholder="เช่น used-equipment.php" style="font-size:13px;">
+            </div>
+            <label style="font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:6px;">
+              <input type="checkbox" name="remove_slides[]" value="<?= (int) $slide['id'] ?>"> ลบสไลด์นี้
+            </label>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
+
+    <div class="form-field">
+      <label for="new_slides">เพิ่มสไลด์ใหม่ (เลือกได้หลายรูป — JPG/PNG/WEBP ไม่เกิน 5MB ต่อรูป)</label>
+      <input type="file" id="new_slides" name="new_slides[]" accept="image/jpeg,image/png,image/webp" multiple>
     </div>
   </div>
 

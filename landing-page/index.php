@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/content.php';
 require_once __DIR__ . '/includes/helpers.php';
+$heroSlides = loadHeroSlides();
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -197,6 +198,35 @@ require_once __DIR__ . '/includes/helpers.php';
   #nav-toggle{display:none;}
   .burger{display:none;cursor:pointer;flex-direction:column;gap:5px;}
   .burger span{width:26px;height:2px;background:var(--green-dark);display:block;}
+
+  /* ---- hero slider (banner images) ---- */
+  .hero-slider{position:relative;overflow:hidden;background:var(--green-mist);}
+  .hero-slider-track{display:flex;transition:transform .6s var(--ease);}
+  .hero-slide{flex:none;width:100%;aspect-ratio:16/6;display:block;}
+  .hero-slide img{width:100%;height:100%;object-fit:cover;}
+  .hero-slider-nav{
+    position:absolute;top:50%;transform:translateY(-50%);
+    width:40px;height:40px;border-radius:50%;border:none;
+    background:rgba(255,255,255,.85);color:var(--green-dark);
+    font-size:17px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.15);
+    display:flex;align-items:center;justify-content:center;z-index:2;
+  }
+  .hero-slider-nav.prev{left:18px;}
+  .hero-slider-nav.next{right:18px;}
+  .hero-slider-dots{
+    position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+    display:flex;gap:8px;z-index:2;
+  }
+  .hero-slider-dot{
+    width:9px;height:9px;border-radius:50%;border:none;
+    background:rgba(255,255,255,.6);cursor:pointer;padding:0;
+    transition:.25s ease;
+  }
+  .hero-slider-dot.active{background:var(--white);width:22px;border-radius:999px;}
+  @media(max-width:720px){
+    .hero-slide{aspect-ratio:4/5;}
+    .hero-slider-nav{width:34px;height:34px;font-size:15px;}
+  }
 
   /* ---- hero ---- */
   .hero{
@@ -728,6 +758,28 @@ require_once __DIR__ . '/includes/helpers.php';
   </div>
 </header>
 
+<?php if ($heroSlides): ?>
+<section class="hero-slider" id="hero-slider">
+  <div class="hero-slider-track" id="heroSliderTrack">
+    <?php foreach ($heroSlides as $slide): ?>
+      <?php $tag = $slide['link_url'] ? 'a' : 'div'; ?>
+      <<?= $tag ?> class="hero-slide"<?= $slide['link_url'] ? ' href="' . h($slide['link_url']) . '"' : '' ?>>
+        <img src="<?= h($slide['image_path']) ?>" alt="">
+      </<?= $tag ?>>
+    <?php endforeach; ?>
+  </div>
+  <?php if (count($heroSlides) > 1): ?>
+    <button type="button" class="hero-slider-nav prev" onclick="heroSliderStep(-1)" aria-label="สไลด์ก่อนหน้า">&larr;</button>
+    <button type="button" class="hero-slider-nav next" onclick="heroSliderStep(1)" aria-label="สไลด์ถัดไป">&rarr;</button>
+    <div class="hero-slider-dots">
+      <?php foreach ($heroSlides as $i => $slide): ?>
+        <button type="button" class="hero-slider-dot<?= $i === 0 ? ' active' : '' ?>" onclick="heroSliderTo(<?= (int) $i ?>)" aria-label="ไปสไลด์ที่ <?= (int) $i + 1 ?>"></button>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+</section>
+<?php endif; ?>
+
 <section class="hero" id="top">
   <div class="aurora"><span></span><span></span><span></span></div>
   <img class="hero-mark" src="logo.png" alt="">
@@ -971,6 +1023,42 @@ require_once __DIR__ . '/includes/helpers.php';
   }
   window.addEventListener('scroll', updateHeaderScroll, { passive: true });
   updateHeaderScroll();
+</script>
+
+<script>
+  var heroSliderTrack = document.getElementById('heroSliderTrack');
+  if (heroSliderTrack) {
+    var heroSlides = heroSliderTrack.querySelectorAll('.hero-slide');
+    var heroDots = document.querySelectorAll('.hero-slider-dot');
+    var heroIndex = 0;
+    var heroTimer = null;
+
+    function heroSliderRender() {
+      heroSliderTrack.style.transform = 'translateX(-' + (heroIndex * 100) + '%)';
+      heroDots.forEach(function (dot, i) {
+        dot.classList.toggle('active', i === heroIndex);
+      });
+    }
+
+    window.heroSliderTo = function (i) {
+      heroIndex = (i + heroSlides.length) % heroSlides.length;
+      heroSliderRender();
+      heroSliderRestart();
+    };
+
+    window.heroSliderStep = function (step) {
+      window.heroSliderTo(heroIndex + step);
+    };
+
+    function heroSliderRestart() {
+      if (heroTimer) { clearInterval(heroTimer); }
+      if (heroSlides.length > 1) {
+        heroTimer = setInterval(function () { window.heroSliderTo(heroIndex + 1); }, 5000);
+      }
+    }
+
+    heroSliderRestart();
+  }
 </script>
 
 <script>
