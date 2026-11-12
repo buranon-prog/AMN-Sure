@@ -103,14 +103,14 @@
 
 <header>
   <div class="nav-wrap">
-    <a href="index.html" class="logo">
+    <a href="index.php" class="logo">
       <img src="logo.png" alt="AMN SURE">
     </a>
     <nav>
       <ul>
-        <li><a href="index.html">หน้าแรก</a></li>
+        <li><a href="index.php">หน้าแรก</a></li>
         <li><a href="used-equipment.php">เครื่องมือแพทย์มือสอง</a></li>
-        <li><a href="index.html#contact">ติดต่อเรา</a></li>
+        <li><a href="index.php#contact">ติดต่อเรา</a></li>
       </ul>
     </nav>
   </div>
