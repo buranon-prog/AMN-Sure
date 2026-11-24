@@ -199,125 +199,88 @@ $heroSlides = loadHeroSlides();
   .burger{display:none;cursor:pointer;flex-direction:column;gap:5px;}
   .burger span{width:26px;height:2px;background:var(--green-dark);display:block;}
 
-  /* ---- hero slider (banner images) ---- */
-  .hero-slider{position:relative;overflow:hidden;padding:0;background:linear-gradient(120deg,var(--green-dark),#0f2a20);}
-  .hero-slider-track{display:flex;transition:transform .6s var(--ease);}
-  .hero-slide{flex:none;width:100%;height:clamp(200px,28.6vw,620px);display:block;}
+  /* ---- hero (photo-slider card) ---- */
+  .hero-wrap{padding:132px 0 70px;background:var(--white);}
+  .hero-card{
+    position:relative;
+    display:flex;
+    align-items:center;
+    padding:0 60px;
+    border-radius:32px;
+    overflow:hidden;
+    height:clamp(480px,46vw,720px);
+    box-shadow:0 50px 90px -40px rgba(23,59,46,.45);
+    background:linear-gradient(135deg,var(--green-dark),#0f2a20);
+  }
+  .hero-slider-track{position:absolute;inset:0;z-index:0;display:flex;height:100%;transition:transform .7s var(--ease);}
+  .hero-slide{position:relative;flex:none;width:100%;height:100%;display:block;}
   .hero-slide img{width:100%;height:100%;object-fit:cover;}
+  .hero-slide-fallback{width:100%;height:100%;background:linear-gradient(135deg,var(--green-dark),#0f2a20);}
+  .hero-scrim{
+    position:absolute;inset:0;z-index:1;pointer-events:none;
+    background:linear-gradient(100deg, rgba(8,20,15,.88) 0%, rgba(8,20,15,.6) 36%, rgba(8,20,15,.18) 64%, rgba(8,20,15,0) 86%);
+  }
+  .hero-content-inner{position:relative;z-index:2;max-width:580px;}
+  .hero-badge{
+    display:inline-flex;align-items:center;gap:10px;
+    padding:9px 20px 9px 16px;
+    border-radius:999px;
+    background:rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.3);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    color:var(--green-soft);
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;font-weight:600;
+    letter-spacing:.1em;text-transform:uppercase;
+    font-size:13.5px;
+    margin-bottom:26px;
+  }
+  .hero-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green-soft);flex:none;}
+  .hero-content-inner h1{
+    color:var(--white);
+    font-size:clamp(32px,4.4vw,56px);
+    line-height:1.14;
+    letter-spacing:-.02em;
+    margin-bottom:20px;
+    text-shadow:0 2px 24px rgba(0,0,0,.25);
+  }
+  .hero-content-inner h1 em{font-style:normal;color:var(--green-soft);}
+  .hero-content-inner p.lead{
+    color:rgba(255,255,255,.82);
+    font-size:16.5px;
+    max-width:460px;
+    margin-bottom:34px;
+  }
+  .hero-content-inner .hero-actions{display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
   .hero-slider-nav{
     position:absolute;top:50%;transform:translateY(-50%);
-    width:40px;height:40px;border-radius:50%;border:none;
-    background:rgba(255,255,255,.85);color:var(--green-dark);
-    font-size:17px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.15);
-    display:flex;align-items:center;justify-content:center;z-index:2;
+    width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.3);
+    background:rgba(255,255,255,.14);color:var(--white);
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    font-size:18px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;z-index:3;
+    transition:.3s ease;
   }
-  .hero-slider-nav.prev{left:18px;}
-  .hero-slider-nav.next{right:18px;}
+  .hero-slider-nav:hover{background:rgba(255,255,255,.26);}
+  .hero-slider-nav.prev{left:28px;}
+  .hero-slider-nav.next{right:28px;}
   .hero-slider-dots{
-    position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
-    display:flex;gap:8px;z-index:2;
+    position:absolute;bottom:28px;left:60px;
+    display:flex;gap:9px;z-index:3;
   }
   .hero-slider-dot{
-    width:9px;height:9px;border-radius:50%;border:none;
-    background:rgba(255,255,255,.6);cursor:pointer;padding:0;
+    width:8px;height:8px;border-radius:50%;border:none;
+    background:rgba(255,255,255,.4);cursor:pointer;padding:0;
     transition:.25s ease;
   }
-  .hero-slider-dot.active{background:var(--white);width:22px;border-radius:999px;}
+  .hero-slider-dot.active{background:var(--white);width:26px;border-radius:999px;}
   @media(max-width:720px){
-    .hero-slide{height:clamp(220px,75vw,320px);}
-    .hero-slider-nav{width:34px;height:34px;font-size:15px;}
+    .hero-wrap{padding:108px 0 50px;}
+    .hero-card{height:clamp(460px,128vw,620px);padding:0 26px;border-radius:24px;}
+    .hero-slider-nav{display:none;}
+    .hero-slider-dots{left:26px;bottom:20px;}
   }
-
-  /* ---- hero ---- */
-  .hero{
-    position:relative;
-    min-height:92vh;
-    display:flex;
-    align-items:center;
-    padding:150px 0 90px;
-    overflow:hidden;
-    background:var(--white);
-  }
-  .aurora{
-    position:absolute;
-    inset:-10%;
-    z-index:0;
-    pointer-events:none;
-  }
-  .aurora span{
-    position:absolute;
-    border-radius:50%;
-    filter:blur(90px);
-    opacity:.45;
-  }
-  .aurora span:nth-child(1){width:520px;height:520px;top:-140px;right:-60px;background:radial-gradient(circle, var(--green-soft), transparent 70%);animation:float1 16s ease-in-out infinite;}
-  .aurora span:nth-child(2){width:420px;height:420px;bottom:-120px;left:-80px;background:radial-gradient(circle, var(--green-mid), transparent 70%);opacity:.3;animation:float2 20s ease-in-out infinite;}
-  .aurora span:nth-child(3){width:340px;height:340px;top:20%;left:38%;background:radial-gradient(circle, var(--green-mist), transparent 70%);opacity:.5;animation:float3 24s ease-in-out infinite;}
-  @keyframes float1{0%,100%{transform:translate(0,0);}50%{transform:translate(-40px,50px);}}
-  @keyframes float2{0%,100%{transform:translate(0,0);}50%{transform:translate(50px,-30px);}}
-  @keyframes float3{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-30px,-40px) scale(1.08);}}
-  .hero-mark{
-    position:absolute;
-    left:calc(50vw + 350px);
-    right:auto;
-    top:50%;
-    transform:translateY(-50%);
-    width:min(42vw, 520px);
-    opacity:.35;
-    z-index:0;
-    filter:drop-shadow(0 40px 80px rgba(23,59,46,.18));
-  }
-  @media(max-width:1360px){
-    .hero-mark{display:none;}
-  }
-  .hero-inner{
-    position:relative;
-    z-index:1;
-    max-width:660px;
-  }
-  .hero h1{
-    font-size:clamp(42px,6.4vw,80px);
-    line-height:1.04;
-    letter-spacing:-.03em;
-    margin:22px 0 26px;
-  }
-  .hero h1 em{
-    font-style:normal;
-    background:linear-gradient(120deg,var(--green),var(--green-dark));
-    -webkit-background-clip:text;
-    background-clip:text;
-    color:transparent;
-  }
-  .hero p.lead{
-    font-size:18px;
-    max-width:520px;
-    margin-bottom:42px;
-  }
-  .hero-actions{display:flex;gap:18px;flex-wrap:wrap;align-items:center;}
-  .scroll-cue{
-    position:absolute;
-    bottom:40px;
-    left:50%;
-    transform:translateX(-50%);
-    z-index:1;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:8px;
-    color:var(--text-light);
-    font-size:11px;
-    letter-spacing:.18em;
-    text-transform:uppercase;
-    opacity:.7;
-  }
-  .scroll-cue .chevron{
-    width:14px;height:14px;
-    border-right:1.5px solid var(--green);
-    border-bottom:1.5px solid var(--green);
-    transform:rotate(45deg);
-    animation:bounce 2s ease-in-out infinite;
-  }
-  @keyframes bounce{0%,100%{transform:rotate(45deg) translate(0,0);}50%{transform:rotate(45deg) translate(4px,4px);}}
 
   /* ---- section generic ---- */
   section{padding:150px 0;}
@@ -331,18 +294,19 @@ $heroSlides = loadHeroSlides();
     gap:90px;
     align-items:center;
   }
-  .about-visual{
+  .about-visual{transition:transform .6s var(--ease);max-width:100%;}
+  .about-visual:hover{transform:translateY(-6px);}
+  .about-visual-fallback{
     background:linear-gradient(160deg,var(--green-mist), #fff);
     border:1px solid var(--green-soft);
     border-radius:32px;
     padding:70px 40px;
     position:relative;
     overflow:hidden;
-    transition:transform .6s var(--ease);
-    max-width:100%;
+    height:460px;
+    display:flex;align-items:center;justify-content:center;
   }
-  .about-visual:hover{transform:translateY(-6px);}
-  .about-visual::before{
+  .about-visual-fallback::before{
     content:"";
     position:absolute;
     width:340px;height:340px;
@@ -351,7 +315,7 @@ $heroSlides = loadHeroSlides();
     top:50%;left:50%;
     transform:translate(-50%,-50%);
   }
-  .about-visual::after{
+  .about-visual-fallback::after{
     content:"";
     position:absolute;
     width:440px;height:440px;
@@ -360,7 +324,15 @@ $heroSlides = loadHeroSlides();
     top:50%;left:50%;
     transform:translate(-50%,-50%);
   }
-  .about-visual img{width:100%;max-width:260px;margin:0 auto;position:relative;z-index:1;}
+  .about-visual-fallback img{width:100%;max-width:260px;margin:0 auto;position:relative;z-index:1;}
+  .photo-collage{position:relative;display:grid;gap:18px;height:460px;}
+  .photo-collage img{width:100%;height:100%;object-fit:cover;border-radius:24px;display:block;box-shadow:0 30px 60px -30px rgba(23,59,46,.35);}
+  .photo-collage.collage-3{grid-template-columns:1.3fr 1fr;grid-template-rows:1fr 1fr;}
+  .photo-collage.collage-3 .collage-main{grid-row:1 / 3;}
+  .photo-collage.collage-2{grid-template-columns:1.3fr 1fr;}
+  @media(max-width:720px){
+    .about-visual-fallback,.photo-collage{height:320px;}
+  }
   .about-lead{
     font-family:'Cormorant Garamond', serif;
     font-style:italic;
@@ -758,46 +730,70 @@ $heroSlides = loadHeroSlides();
   </div>
 </header>
 
-<?php if ($heroSlides): ?>
-<section class="hero-slider" id="hero-slider">
-  <div class="hero-slider-track" id="heroSliderTrack">
-    <?php foreach ($heroSlides as $slide): ?>
-      <?php $tag = $slide['link_url'] ? 'a' : 'div'; ?>
-      <<?= $tag ?> class="hero-slide"<?= $slide['link_url'] ? ' href="' . h($slide['link_url']) . '"' : '' ?>>
-        <img src="<?= h($slide['image_path']) ?>" alt="">
-      </<?= $tag ?>>
-    <?php endforeach; ?>
-  </div>
-  <?php if (count($heroSlides) > 1): ?>
-    <button type="button" class="hero-slider-nav prev" onclick="heroSliderStep(-1)" aria-label="สไลด์ก่อนหน้า">&larr;</button>
-    <button type="button" class="hero-slider-nav next" onclick="heroSliderStep(1)" aria-label="สไลด์ถัดไป">&rarr;</button>
-    <div class="hero-slider-dots">
-      <?php foreach ($heroSlides as $i => $slide): ?>
-        <button type="button" class="hero-slider-dot<?= $i === 0 ? ' active' : '' ?>" onclick="heroSliderTo(<?= (int) $i ?>)" aria-label="ไปสไลด์ที่ <?= (int) $i + 1 ?>"></button>
-      <?php endforeach; ?>
-    </div>
-  <?php endif; ?>
-</section>
-<?php endif; ?>
+<section class="hero-wrap" id="top">
+  <div class="container">
+    <div class="hero-card">
+      <div class="hero-slider-track" id="heroSliderTrack">
+        <?php if ($heroSlides): ?>
+          <?php foreach ($heroSlides as $slide): ?>
+            <?php $tag = $slide['link_url'] ? 'a' : 'div'; ?>
+            <<?= $tag ?> class="hero-slide"<?= $slide['link_url'] ? ' href="' . h($slide['link_url']) . '"' : '' ?>>
+              <img src="<?= h($slide['image_path']) ?>" alt="">
+            </<?= $tag ?>>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <div class="hero-slide hero-slide-fallback"></div>
+        <?php endif; ?>
+      </div>
 
-<section class="hero" id="top">
-  <div class="aurora"><span></span><span></span><span></span></div>
-  <img class="hero-mark" src="logo.png" alt="">
-  <div class="container hero-inner">
-    <span class="eyebrow"><?= h(cf('hero_eyebrow', 'th')) ?></span>
-    <h1 data-i18n-html data-th="<?= h(cf('hero_heading', 'th')) ?>" data-en="<?= h(cf('hero_heading', 'en')) ?>"><?= cf('hero_heading', 'th') ?></h1>
-    <p class="lead" data-th="<?= h(cf('hero_body', 'th')) ?>" data-en="<?= h(cf('hero_body', 'en')) ?>"><?= h(cf('hero_body', 'th')) ?></p>
-    <div class="hero-actions">
-      <a href="#contact" class="btn btn-primary" data-th="<?= h(cf('hero_cta_label', 'th')) ?>" data-en="<?= h(cf('hero_cta_label', 'en')) ?>"><?= h(cf('hero_cta_label', 'th')) ?></a>
+      <div class="hero-scrim"></div>
+
+      <div class="hero-content-inner reveal">
+        <span class="hero-badge"><?= h(cf('hero_eyebrow', 'th')) ?></span>
+        <h1 data-i18n-html data-th="<?= h(cf('hero_heading', 'th')) ?>" data-en="<?= h(cf('hero_heading', 'en')) ?>"><?= cf('hero_heading', 'th') ?></h1>
+        <p class="lead" data-th="<?= h(cf('hero_body', 'th')) ?>" data-en="<?= h(cf('hero_body', 'en')) ?>"><?= h(cf('hero_body', 'th')) ?></p>
+        <div class="hero-actions">
+          <a href="#contact" class="btn btn-primary" data-th="<?= h(cf('hero_cta_label', 'th')) ?>" data-en="<?= h(cf('hero_cta_label', 'en')) ?>"><?= h(cf('hero_cta_label', 'th')) ?></a>
+        </div>
+      </div>
+
+      <?php if (count($heroSlides) > 1): ?>
+        <button type="button" class="hero-slider-nav prev" onclick="heroSliderStep(-1)" aria-label="สไลด์ก่อนหน้า">&larr;</button>
+        <button type="button" class="hero-slider-nav next" onclick="heroSliderStep(1)" aria-label="สไลด์ถัดไป">&rarr;</button>
+        <div class="hero-slider-dots">
+          <?php foreach ($heroSlides as $i => $slide): ?>
+            <button type="button" class="hero-slider-dot<?= $i === 0 ? ' active' : '' ?>" onclick="heroSliderTo(<?= (int) $i ?>)" aria-label="ไปสไลด์ที่ <?= (int) $i + 1 ?>"></button>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
     </div>
   </div>
-  <div class="scroll-cue"><span>Scroll</span><span class="chevron"></span></div>
 </section>
 
 <section id="about">
   <div class="container about-grid">
     <div class="about-visual reveal">
-      <img src="logo.png" alt="AMN SURE">
+      <?php $collage = array_slice($heroSlides, 0, 3); $collageCount = count($collage); ?>
+      <?php if ($collageCount >= 3): ?>
+        <div class="photo-collage collage-3">
+          <img class="collage-main" src="<?= h($collage[0]['image_path']) ?>" alt="">
+          <img class="collage-sm" src="<?= h($collage[1]['image_path']) ?>" alt="">
+          <img class="collage-sm" src="<?= h($collage[2]['image_path']) ?>" alt="">
+        </div>
+      <?php elseif ($collageCount === 2): ?>
+        <div class="photo-collage collage-2">
+          <img class="collage-main" src="<?= h($collage[0]['image_path']) ?>" alt="">
+          <img class="collage-sm" src="<?= h($collage[1]['image_path']) ?>" alt="">
+        </div>
+      <?php elseif ($collageCount === 1): ?>
+        <div class="photo-collage collage-1">
+          <img src="<?= h($collage[0]['image_path']) ?>" alt="" style="border-radius:32px;">
+        </div>
+      <?php else: ?>
+        <div class="about-visual-fallback">
+          <img src="logo.png" alt="AMN SURE">
+        </div>
+      <?php endif; ?>
     </div>
     <div class="reveal">
       <span class="eyebrow"><?= h(cf('about_eyebrow', 'th')) ?></span>
@@ -808,6 +804,9 @@ $heroSlides = loadHeroSlides();
         <li><span class="dot"></span><span data-th="<?= h(cf('about_point_2', 'th')) ?>" data-en="<?= h(cf('about_point_2', 'en')) ?>"><?= h(cf('about_point_2', 'th')) ?></span></li>
         <li><span class="dot"></span><span data-th="<?= h(cf('about_point_3', 'th')) ?>" data-en="<?= h(cf('about_point_3', 'en')) ?>"><?= h(cf('about_point_3', 'th')) ?></span></li>
       </ul>
+      <div class="hero-actions" style="margin-top:36px;">
+        <a href="used-equipment.php" class="btn btn-outline" data-th="ดูสินค้ามือสอง" data-en="Browse Used Equipment">ดูสินค้ามือสอง</a>
+      </div>
     </div>
   </div>
 </section>
